@@ -1,5 +1,5 @@
 // ext/lmsensors/lmsensors.c
-/* Last backed-up version: < 2021-May-15 @ 08:26:07 */
+/* Last backed-up version: < 2021-May-15 @ 15:39:56 */
 #include <ruby.h>
 #include <stdbool.h>
 #include <string.h>
@@ -67,8 +67,13 @@ VALUE lmsensors_cleanup() {
  * Despite being const, they are actually altered by
  * pointer to their internal structure, as per the
  * lmsensors API.
+ * 
+ * chip_name_str is optional and used only if you want
+ * to handle a particular chip. After enumerating,
+ * you should be able to find the chip name you want to use.
  */
 typedef struct {
+  const char *chip_name_str;
   const sensors_chip_name *chip_ptr;
   const sensors_feature *feat_ptr;
   const sensors_subfeature *subfeat_ptr;
@@ -107,7 +112,7 @@ VALUE sensors_obj_alloc(VALUE self) {
 } // End memory allocation
 
 // Constructor
-VALUE sensors_initialize(VALUE self) {
+VALUE method_sensors_initialize(VALUE self) {
   // Create the pointers
   sensors_chip_name *chip;
   sensors_feature *feat;
@@ -115,6 +120,7 @@ VALUE sensors_initialize(VALUE self) {
   
   // Attach them to struct
   sensors_obj s = {
+    .chip_name_str = NULL, // NULL, by default -- ALL sensors
     .chip_ptr = chip,
     .feat_ptr = feat,
     .subfeat_ptr = subfeat,
@@ -141,9 +147,19 @@ VALUE method_sensors_enumerate_chips(VALUE self) {
   
   LMSVALIDATE; // Shorthand early return, if not loaded
   
+  // Intermediary chip item
+  sensors_chip_name chip_raw;
+  sensors_chip_name *chip = NULL;
+  if (sensor->chip_name_str != NULL) {
+    err = sensors_parse_chip_name(sensor->chip_name_str, &chip_raw);
+    if (err) { return rb_str_new2("Failed to load requested chip"); }
+    else { chip = &chip_raw; }
+  }
+  
   // If not early return, sensors are valid
   VALUE data = rb_hash_new();
-  while ((sensor->chip_ptr = sensors_get_detected_chips(NULL, &chip_nr))) {
+  while ((sensor->chip_ptr = sensors_get_detected_chips(chip, &chip_nr))) {
+    // Make sure the chip data can be collected
     err = sensors_do_chip_sets(sensor->chip_ptr);
     if (err) { // If anything but 0, it can't load
       rb_hash_aset(data, rb_id2sym(rb_intern("fatal_err")), rb_str_new2(
@@ -181,6 +197,63 @@ VALUE method_sensors_enumerate_chips(VALUE self) {
 } // End enumerate method
 
 /*
+ * Set the chip name -- this should be which chip you
+ * would like to use to get data from.
+ */
+VALUE method_sensors_set_chip_name(VALUE self, VALUE name) {
+  Check_Type(name, T_STRING);
+  LMSLOADER; // Shorthand load sensor
+  LMSVALIDATE; // Shorthand early return, if not loaded
+  sensor->chip_name_str = StringValueCStr(name);
+  return self;
+} // End set chip name
+
+// Get the set chip name
+VALUE method_sensors_get_chip_name(VALUE self) {
+  LMSLOADER; // Shorthand load sensor
+  LMSVALIDATE; // Shorthand early return, if not loaded
+  if (sensor->chip_name_str != NULL) {
+    return rb_str_new2(sensor->chip_name_str);
+  } else { return Qnil; }
+} // End chip name checker
+
+/*
+ * Unset the chip name, so data will now come from
+ * all available chips (probably most people's use case).
+ */
+VALUE method_sensors_unset_chip_name(VALUE self) {
+  LMSLOADER; // Shorthand load sensor
+  LMSVALIDATE; // Shorthand early return, if not loaded
+  sensor->chip_name_str = NULL;
+  return self;
+} // End unset chip name
+
+/*
+ * Load in a specific sensor
+ */
+VALUE method_sensors_load_features(VALUE self)  {
+  LMSLOADER; // Shorthand load sensor
+  int fnr = 0;
+  int cnt = 0;
+  
+  LMSVALIDATE; // Shorthand early return, if not loaded
+  
+  // Create and populate a hash with the sensor data
+  VALUE data = rb_hash_new();
+  while (sensor->feat_ptr = sensors_get_features(sensor->chip_ptr, &fnr)) {
+    // Get the feature's index and name (new string type)
+    VALUE idx = rb_sprintf("feat%d", cnt);
+    char *buffer = sensors_get_label(sensor->chip_ptr, sensor->feat_ptr);
+    
+    // Add it to the hash
+    rb_hash_aset(data, rb_id2sym(rb_intern(StringValueCStr(idx))), rb_str_new2(buffer));
+    free(buffer); // Free the new string
+    cnt++; // Increment the counter
+  }
+  return data;
+}
+
+/*
  * Initialize the LmSensors wrapper
  */
 void Init_lmsensors() {
@@ -196,6 +269,9 @@ void Init_lmsensors() {
   
   // Sensors methods
   rb_define_alloc_func(Sensors, sensors_obj_alloc);
-  rb_define_method(Sensors, "initialize", sensors_initialize, 0);
+  rb_define_method(Sensors, "initialize", method_sensors_initialize, 0);
   rb_define_method(Sensors, "enum", method_sensors_enumerate_chips, 0);
+  rb_define_method(Sensors, "set_name", method_sensors_set_chip_name, 1);
+  rb_define_method(Sensors, "unset_name", method_sensors_unset_chip_name, 0);
+  rb_define_method(Sensors, "get_name", method_sensors_get_chip_name, 0);
 } // End module and class initialization
