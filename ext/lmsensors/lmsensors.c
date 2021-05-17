@@ -1,5 +1,5 @@
 // ext/lmsensors/lmsensors.c
-/* Last backed-up version: < 2021-May-15 @ 15:39:56 */
+/* Last backed-up version: < 2021-May-17 @ 02:30:11 */
 #include <ruby.h>
 #include <stdbool.h>
 #include <string.h>
@@ -132,9 +132,37 @@ VALUE method_sensors_initialize(VALUE self) {
 } // End constructor
 
 /* 
- * Enumerate all the chips that can be read from
+ * 
  */
-VALUE method_sensors_enumerate_chips(VALUE self) {
+VALUE method_sensors_get_features(VALUE self) {
+  LMSLOADER; // Shorthand load sensor
+  LMSVALIDATE; // Shorthand early return, if not loaded
+  int nr = 0;
+  int cnt = 0;
+  VALUE features = rb_hash_new();
+  
+  // Loop through all the features
+  while ((sensor->feat_ptr = sensors_get_features(sensor->chip_ptr, &nr))) {
+    char *label = sensors_get_label(sensor->chip_ptr, sensor->feat_ptr);
+    rb_hash_aset(features, rb_id2sym(rb_intern(label)),
+                 rb_str_new2("SUBFEATURE"));
+    free(label);
+  } // End feature loop
+  
+  return features;
+} // End features getter
+
+/* 
+ * Enumerate all the chips that can be read from.
+ * 
+ * If a chip name is set, only read chips of that type.
+ * 
+ * If show_data is true, stat each chip of that type.
+ * 
+ * The different way to call this should be abstracted
+ * into the Ruby side wrapping this.
+ */
+VALUE method_sensors_enumerate_chips(VALUE self, VALUE show_data) {
   LMSLOADER; // Shorthand load sensor
   int chip_nr = 0;
   int cnt = 0;
@@ -177,12 +205,20 @@ VALUE method_sensors_enumerate_chips(VALUE self) {
         // Attach the name of the chip
         rb_hash_aset(curr_chip, rb_id2sym(rb_intern("name")), rb_str_new2(buffer));
         // Get the chip path
-        rb_hash_aset(curr_chip, rb_id2sym(rb_intern("path")), 
-                     rb_str_new2(sensor->chip_ptr->path));
+        VALUE path = rb_str_new2(sensor->chip_ptr->path);
+        rb_hash_aset(curr_chip, rb_id2sym(rb_intern("path")), path);
         
-        // Add the chip entry to the list
-        rb_hash_aset(data, rb_id2sym(rb_intern(StringValueCStr(idx))),
-                     curr_chip);
+        /* 
+         * Stat the features for the card, if set
+         * Had to double-check against NIL, b/c doesn't
+         * fail the same way as in Ruby.
+         */
+        if (show_data && !NIL_P(show_data)) {
+          rb_hash_aset(curr_chip, rb_id2sym(rb_intern("stat")),
+                       method_sensors_get_features(self)); }
+                       
+                       // Add the chip entry to the list
+                       rb_hash_aset(data, path, curr_chip);
       } else {
         rb_hash_aset(data, rb_id2sym(rb_intern("chip_error")), idx);
         break;
@@ -229,31 +265,6 @@ VALUE method_sensors_unset_chip_name(VALUE self) {
 } // End unset chip name
 
 /*
- * Load in a specific sensor
- */
-VALUE method_sensors_load_features(VALUE self)  {
-  LMSLOADER; // Shorthand load sensor
-  int fnr = 0;
-  int cnt = 0;
-  
-  LMSVALIDATE; // Shorthand early return, if not loaded
-  
-  // Create and populate a hash with the sensor data
-  VALUE data = rb_hash_new();
-  while (sensor->feat_ptr = sensors_get_features(sensor->chip_ptr, &fnr)) {
-    // Get the feature's index and name (new string type)
-    VALUE idx = rb_sprintf("feat%d", cnt);
-    char *buffer = sensors_get_label(sensor->chip_ptr, sensor->feat_ptr);
-    
-    // Add it to the hash
-    rb_hash_aset(data, rb_id2sym(rb_intern(StringValueCStr(idx))), rb_str_new2(buffer));
-    free(buffer); // Free the new string
-    cnt++; // Increment the counter
-  }
-  return data;
-}
-
-/*
  * Initialize the LmSensors wrapper
  */
 void Init_lmsensors() {
@@ -270,8 +281,9 @@ void Init_lmsensors() {
   // Sensors methods
   rb_define_alloc_func(Sensors, sensors_obj_alloc);
   rb_define_method(Sensors, "initialize", method_sensors_initialize, 0);
-  rb_define_method(Sensors, "enum", method_sensors_enumerate_chips, 0);
+  rb_define_method(Sensors, "enum", method_sensors_enumerate_chips, 1);
   rb_define_method(Sensors, "set_name", method_sensors_set_chip_name, 1);
   rb_define_method(Sensors, "unset_name", method_sensors_unset_chip_name, 0);
   rb_define_method(Sensors, "get_name", method_sensors_get_chip_name, 0);
+  rb_define_method(Sensors, "features", method_sensors_get_features, 0);
 } // End module and class initialization
