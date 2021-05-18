@@ -1,5 +1,5 @@
 // ext/lmsensors_base/lmsensors_base.c
-/* Last backed-up version: < 2021-May-18 @ 08:51:35 */
+/* Last backed-up version: < 2021-May-18 @ 15:45:54 */
 #include <ruby.h>
 #include <stdbool.h>
 #include <string.h>
@@ -126,6 +126,41 @@ VALUE method_sensors_initialize(VALUE self) {
   return self;
 } // End constructor
 
+/*
+ * Assign some units to some known feature
+ * types, so they can be attached in the front-end
+ * of the program using them.
+ */
+VALUE method_sensors_get_units(VALUE self) {
+  LMSLOADER; // Shorthand load sensor
+  LMSVALIDATE; // Shorthand early return, if not loaded
+  
+  // Pick the units, defaults to nil
+  switch (sensor->feat_ptr->type) {
+    // Cooling
+    case SENSORS_FEATURE_FAN:
+      return rb_id2sym(rb_intern("rpm"));
+    case SENSORS_FEATURE_TEMP:
+      return rb_id2sym(rb_intern("degrees_c"));
+      
+      // Power
+    case SENSORS_FEATURE_IN:
+      return rb_id2sym(rb_intern("volts"));
+    case SENSORS_FEATURE_POWER:
+      return rb_id2sym(rb_intern("watts"));
+      
+      // Warning types
+    case SENSORS_FEATURE_BEEP_ENABLE:
+      return rb_id2sym(rb_intern("beep"));
+    case SENSORS_FEATURE_INTRUSION:
+      return rb_id2sym(rb_intern("alarm"));
+      
+      // Anything else
+    default:
+      return Qnil;
+  }
+} // End units getters
+
 /* 
  * Get the subfeature data for each chip's features.
  */
@@ -143,7 +178,8 @@ VALUE method_sensors_get_subfeatures(VALUE self) {
     sensor->chip_ptr, sensor->feat_ptr, &snr))) {
     // Set the core values for the card, such as ID
     VALUE sf = rb_hash_new();
-  VALUE idx = rb_sprintf("sf_%d", cnt);
+  VALUE units = method_sensors_get_units(self);
+  rb_hash_aset(sf, rb_id2sym(rb_intern("units")), units);
   
   VALUE sf_name = rb_str_new2(sensor->subfeat_ptr->name);
   
