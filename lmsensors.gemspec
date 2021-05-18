@@ -55,5 +55,5 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = ">= 2.7.0"
   
   # Compiled extensions
-  spec.extensions = ['ext/lmsensors/extconf.rb']
+  spec.extensions = ['ext/lmsensors_base/extconf.rb']
 end # End spec
