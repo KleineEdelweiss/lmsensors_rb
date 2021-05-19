@@ -27,7 +27,7 @@ s.get_name # Return the current chip selection's name
 
 ### TO-DO ###
 1) Clean up the code and directory tree
-1) See about adding formatting for values, based on the ``SENSORS_FEATURE_TYPE`` and/or ``SENSORS_SUBFEATURE_TYPE`` (on either the C or Ruby side)
+1) Create some methods to simplify accessing subfeature sensor formatting (because the unit formatting is not very nice)
 1) Write up the rest of the documentation
 1) Publish version 0.1.0
 

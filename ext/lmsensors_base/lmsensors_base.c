@@ -1,5 +1,5 @@
 // ext/lmsensors_base/lmsensors_base.c
-/* Last backed-up version: < 2021-May-18 @ 15:45:54 */
+/* Last backed-up version: < 2021-May-19 @ 09:36:47 */
 #include <ruby.h>
 #include <stdbool.h>
 #include <string.h>
@@ -126,41 +126,6 @@ VALUE method_sensors_initialize(VALUE self) {
   return self;
 } // End constructor
 
-/*
- * Assign some units to some known feature
- * types, so they can be attached in the front-end
- * of the program using them.
- */
-VALUE method_sensors_get_units(VALUE self) {
-  LMSLOADER; // Shorthand load sensor
-  LMSVALIDATE; // Shorthand early return, if not loaded
-  
-  // Pick the units, defaults to nil
-  switch (sensor->feat_ptr->type) {
-    // Cooling
-    case SENSORS_FEATURE_FAN:
-      return rb_id2sym(rb_intern("rpm"));
-    case SENSORS_FEATURE_TEMP:
-      return rb_id2sym(rb_intern("degrees_c"));
-      
-      // Power
-    case SENSORS_FEATURE_IN:
-      return rb_id2sym(rb_intern("volts"));
-    case SENSORS_FEATURE_POWER:
-      return rb_id2sym(rb_intern("watts"));
-      
-      // Warning types
-    case SENSORS_FEATURE_BEEP_ENABLE:
-      return rb_id2sym(rb_intern("beep"));
-    case SENSORS_FEATURE_INTRUSION:
-      return rb_id2sym(rb_intern("alarm"));
-      
-      // Anything else
-    default:
-      return Qnil;
-  }
-} // End units getters
-
 /* 
  * Get the subfeature data for each chip's features.
  */
@@ -172,36 +137,38 @@ VALUE method_sensors_get_subfeatures(VALUE self) {
   int err = 0;
   double value;
   VALUE subfeatures = rb_hash_new();
+  // On Ruby side, will determine feature unit type
+  // from the type.
+  rb_hash_aset(subfeatures, rb_id2sym(rb_intern("def_units")), 
+    INT2NUM(sensor->feat_ptr->type));
   
   // Loop through all the features
   while ((sensor->subfeat_ptr = sensors_get_all_subfeatures(
     sensor->chip_ptr, sensor->feat_ptr, &snr))) {
     // Set the core values for the card, such as ID
     VALUE sf = rb_hash_new();
-  VALUE units = method_sensors_get_units(self);
-  rb_hash_aset(sf, rb_id2sym(rb_intern("units")), units);
   
-  VALUE sf_name = rb_str_new2(sensor->subfeat_ptr->name);
-  
-  // Set the main keys
-  rb_hash_aset(sf, rb_id2sym(rb_intern("name")), sf_name);
-  rb_hash_aset(sf, rb_id2sym(rb_intern("number")),
-               INT2NUM(sensor->subfeat_ptr->number));
-  rb_hash_aset(sf, rb_id2sym(rb_intern("mapping")),
-               INT2NUM(sensor->subfeat_ptr->mapping));
-  
-  // Set the value, if it can be found
-  err = sensors_get_value(sensor->chip_ptr, (snr - 1), &value);
-  if (!err) {
-    rb_hash_aset(sf, rb_id2sym(rb_intern("value")),
-                 DBL2NUM(value));
-  }
-  
-  rb_hash_aset(subfeatures, rb_id2sym(rb_intern(StringValueCStr(sf_name))), sf);
-  cnt++; // Increment counter
-    } // End feature loop
+    VALUE sf_name = rb_str_new2(sensor->subfeat_ptr->name);
     
-    return subfeatures;
+    // Set the main keys
+    rb_hash_aset(sf, rb_id2sym(rb_intern("name")), sf_name);
+    rb_hash_aset(sf, rb_id2sym(rb_intern("number")),
+      INT2NUM(sensor->subfeat_ptr->number));
+    rb_hash_aset(sf, rb_id2sym(rb_intern("mapping")),
+      INT2NUM(sensor->subfeat_ptr->mapping));
+    
+    // Set the value, if it can be found
+    err = sensors_get_value(sensor->chip_ptr, (snr - 1), &value);
+    if (!err) {
+      rb_hash_aset(sf, rb_id2sym(rb_intern("value")),
+        DBL2NUM(value));
+    } // End value setter
+    
+    // Attach the individual subfeature
+    rb_hash_aset(subfeatures, rb_id2sym(rb_intern(StringValueCStr(sf_name))), sf);
+    cnt++; // Increment counter
+  } // End feature loop
+  return subfeatures;
 } // End subfeatures getter
 
 /* 
@@ -218,7 +185,7 @@ VALUE method_sensors_get_features(VALUE self) {
   while ((sensor->feat_ptr = sensors_get_features(sensor->chip_ptr, &nr))) {
     char *label = sensors_get_label(sensor->chip_ptr, sensor->feat_ptr);
     rb_hash_aset(features, rb_id2sym(rb_intern(label)),
-                 method_sensors_get_subfeatures(self));
+      method_sensors_get_subfeatures(self));
     free(label);
   } // End feature loop
   
@@ -275,7 +242,7 @@ VALUE method_sensors_enumerate_chips(VALUE self, VALUE show_data, VALUE name) {
         // Create a new chip entry
         VALUE curr_chip = rb_hash_new();
         rb_hash_aset(curr_chip, rb_id2sym(rb_intern("adapter")),
-                     rb_str_new2(adapter)); // Attach the adapter
+          rb_str_new2(adapter)); // Attach the adapter
         // Attach the name of the chip
         rb_hash_aset(curr_chip, rb_id2sym(rb_intern("name")), rb_str_new2(buffer));
         // Get the chip path
@@ -289,10 +256,10 @@ VALUE method_sensors_enumerate_chips(VALUE self, VALUE show_data, VALUE name) {
          */
         if (show_data && !NIL_P(show_data)) {
           rb_hash_aset(curr_chip, rb_id2sym(rb_intern("stat")),
-                       method_sensors_get_features(self)); }
-                       
-                       // Add the chip entry to the list
-                       rb_hash_aset(data, path, curr_chip);
+            method_sensors_get_features(self)); }
+            
+          // Add the chip entry to the list
+          rb_hash_aset(data, path, curr_chip);
       } else {
         rb_hash_aset(data, rb_id2sym(rb_intern("chip_error")), idx);
         break;
