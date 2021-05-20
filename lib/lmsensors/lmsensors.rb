@@ -84,22 +84,22 @@ module LmSensors
     ##
     # Constructor
     def initialize() pro_initialize end
-      
+    
     ##
     # Set the chip's name you want to
     # get -- by default, ``nil``, so it
     # will return ALL the chips
     def set_name(name) @chip_name = name end
-        
+    
     ##
     # Unset the current chip's name, so
     # it returns ALL the chips, again
     def unset_name() @chip_name = nil end
-          
+    
     ##
     # Return the currently-monitored chip's name
     def get_name() @chip_name end
-            
+    
     ##
     # Enumerate the chip and its features.
     # 
@@ -107,11 +107,86 @@ module LmSensors
     # the available chips or the selected
     # chip set by ``set_name``.
     def enum(name=@chip_name) pro_enum(nil, @chip_name) end
-              
+    
     ##
     # Stat will return the values and names
     # of all the features associated with the
     # currently-selected chip.
     def stat() pro_enum(true, @chip_name) end
-  end
-end
+    
+    ##
+    # Find a device sensors by its path, in such
+    # a case where the app already has a device from
+    # sysfs or similar and needs to attach them together.
+    # 
+    # Sets the name of the sensor, as well, so this should
+    # be used as an instance.
+    def locate(path)
+      # Clean the path input
+      path = path.strip.gsub(/\/*$/, "")
+      
+      # Check if path is a directory, else exit early.
+      # Do not need to check File.exist? first, b/c this
+      # already returns nil, if it doesn't.
+      if !File.directory?(path) then
+        STDERR.puts "::Sensors ERROR:: Path is either invalid or not a directory!"
+        return nil
+      end # End directory check
+      
+      # Determine if it's a valid sensor, since the
+      # sensors here use the path as the index.
+      # If so, set it as this object's name
+      enum.then do |sensors|
+        # Return early, if it's not in the keys
+        if !sensors.keys.include?(path) then
+          STDERR.puts "Path does not have an associated sensor"
+          return nil
+        end # End check for valid sensor path
+        
+        # Set the name and return it
+        set_name sensors[path][:name]
+        get_name
+      end # End enumeration handler
+    end # End locate by path
+    
+    ##
+    # Get the number of sensors available
+    # for the current name (or the total number
+    # of sensors available).
+    def count_s() enum[:total_sensors] end # End count of sensors
+    
+    ##
+    # Get the number of features available for
+    # the current name (or total features to be
+    # read for all sensors).
+    def count_f
+      total = 0 # Accumulator
+      # Add up all the features
+      only_sensors.each { |_, v| total += v[:stat].count }
+      total # Return accumulator
+    end # End count of features
+    
+    ##
+    # Get the number of subfeatures available for
+    # the current name (or total features to be
+    # read for all sensors).
+    def count_sf
+      total = 0 # Accumulator
+      only_sensors.each do |_, v|
+        features = v[:stat].collect do |_k, v|
+          # Ignore the :def_units symbol
+          total += (v.select { |item| :def_units != item } .count)
+        end
+      end
+      total # Return accumulator
+    end # End count of features
+    
+    ##
+    # Get only the features, not the counter.
+    def only_sensors
+      # Reject the symbol, b/c it will be :total_sensors.
+      # All others are string paths as key.
+      stat.reject { |item| Symbol === item }
+    end # end getting only the sensors
+  end # End Sensors object class
+end # End LmSensors module
