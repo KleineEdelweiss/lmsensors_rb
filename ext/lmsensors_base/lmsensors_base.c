@@ -1,5 +1,5 @@
 // ext/lmsensors_base/lmsensors_base.c
-/* Last backed-up version: < 2021-May-19 @ 09:36:47 */
+/* Last backed-up version: < 2021-May-21 @ 22:18:35 */
 #include <ruby.h>
 #include <stdbool.h>
 #include <string.h>
@@ -133,13 +133,12 @@ VALUE method_sensors_get_subfeatures(VALUE self) {
   LMSLOADER; // Shorthand load sensor
   LMSVALIDATE; // Shorthand early return, if not loaded
   int snr = 0;
-  int cnt = 0;
   int err = 0;
   double value;
   VALUE subfeatures = rb_hash_new();
   // On Ruby side, will determine feature unit type
   // from the type.
-  rb_hash_aset(subfeatures, rb_id2sym(rb_intern("def_units")), 
+  rb_hash_aset(subfeatures, rb_id2sym(rb_intern("type")), 
     INT2NUM(sensor->feat_ptr->type));
   
   // Loop through all the features
@@ -156,6 +155,8 @@ VALUE method_sensors_get_subfeatures(VALUE self) {
       INT2NUM(sensor->subfeat_ptr->number));
     rb_hash_aset(sf, rb_id2sym(rb_intern("mapping")),
       INT2NUM(sensor->subfeat_ptr->mapping));
+    rb_hash_aset(sf, rb_id2sym(rb_intern("flags")),
+      INT2NUM(sensor->subfeat_ptr->flags));
     
     // Set the value, if it can be found
     err = sensors_get_value(sensor->chip_ptr, (snr - 1), &value);
@@ -166,7 +167,6 @@ VALUE method_sensors_get_subfeatures(VALUE self) {
     
     // Attach the individual subfeature
     rb_hash_aset(subfeatures, rb_id2sym(rb_intern(StringValueCStr(sf_name))), sf);
-    cnt++; // Increment counter
   } // End feature loop
   return subfeatures;
 } // End subfeatures getter
@@ -178,7 +178,6 @@ VALUE method_sensors_get_features(VALUE self) {
   LMSLOADER; // Shorthand load sensor
   LMSVALIDATE; // Shorthand early return, if not loaded
   int nr = 0;
-  int cnt = 0;
   VALUE features = rb_hash_new();
   
   // Loop through all the features
@@ -268,9 +267,6 @@ VALUE method_sensors_enumerate_chips(VALUE self, VALUE show_data, VALUE name) {
     cnt++; // Update the count of available chips
   }
   chip = NULL; // Disconnect the chip placeholder
-  
-  // Add the total count, before returning the data
-  rb_hash_aset(data, rb_id2sym(rb_intern("total_sensors")), INT2NUM(cnt));
   return data;
 } // End enumerate method
 
@@ -281,8 +277,24 @@ void Init_lmsensors_base() {
   LmSensors = rb_define_module("LmSensors"); // Module
   Sensors = rb_define_class_under(LmSensors, "SensorsBase", rb_cData); // Main class
   
-  // Define the global
+  // Define the globals
   rb_global_variable(&LMS_OPEN);
+  
+  // Map-exporting constants
+  rb_define_global_const("SF_IN", INT2NUM(SENSORS_FEATURE_IN));
+  rb_define_global_const("SF_FAN", INT2NUM(SENSORS_FEATURE_FAN));
+  rb_define_global_const("SF_TEMP", INT2NUM(SENSORS_FEATURE_TEMP));
+  rb_define_global_const("SF_POWER", INT2NUM(SENSORS_FEATURE_POWER));
+  rb_define_global_const("SF_ENERGY", INT2NUM(SENSORS_FEATURE_ENERGY));
+  rb_define_global_const("SF_CURR", INT2NUM(SENSORS_FEATURE_CURR));
+  rb_define_global_const("SF_HUMIDITY", INT2NUM(SENSORS_FEATURE_HUMIDITY));
+  rb_define_global_const("SF_MAX_MAIN", INT2NUM(SENSORS_FEATURE_MAX_MAIN));
+  rb_define_global_const("SF_VID", INT2NUM(SENSORS_FEATURE_VID));
+  rb_define_global_const("SF_INTRUSION", INT2NUM(SENSORS_FEATURE_INTRUSION));
+  rb_define_global_const("SF_MAX_OTHER", INT2NUM(SENSORS_FEATURE_MAX_OTHER));
+  rb_define_global_const("SF_BEEP_ENABLE", INT2NUM(SENSORS_FEATURE_BEEP_ENABLE));
+  rb_define_global_const("SF_MAX", INT2NUM(SENSORS_FEATURE_MAX));
+  rb_define_global_const("SF_UNKNOWN", INT2NUM(SENSORS_FEATURE_UNKNOWN));
   
   // Module methods
   rb_define_module_function(LmSensors, "pro_init", lmsensors_init, 1);
