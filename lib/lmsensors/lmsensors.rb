@@ -1,41 +1,9 @@
 # lib/lmsensors/lmsensors.rb
 
 require_relative "../lmsensors_base/lmsensors_base"
+require_relative "./lm_constants"
 
 module LmSensors
-  ##
-  # Lambda function to determine the enabled
-  # state of the sensor subfeature.
-  CHK_BEEP = lambda { |v| v < 0.5 ? "disabled" : "enabled" }
-  CHK_ENABLE = lambda { |v| v.zero? ? "disabled" : "enabled" }
-  
-  ##
-  # Index of units -- this will map the expected
-  # default units to any features. These are taken from
-  # the 'lm-sensors' headers, and I have exported the
-  # constants from the C-code to here. The names DIRECTLY
-  # correspond to the 'sensors_feature_type' enum, but
-  # they have been shortened from 'SENSORS_FEATURE_'
-  # to 'SF_'.
-  # 
-  # This is, to the best of my ability, taken from the
-  # chips.c file, which has a header you can't seem to
-  # access from sensors.h.
-  UNITS = {
-    SF_IN => "V", # Volts
-    SF_FAN => "RPM", # RPM (fan)
-    SF_TEMP => "°C", # Degrees Celsius
-    SF_POWER => "W", # Watts
-    SF_ENERGY => "J", # Energy, Joules [?]
-    SF_CURR => "A", # Seems to be current, Amps [?]
-    SF_HUMIDITY => "%", # Humidity, percent [?]
-    # Skips here
-    SF_VID => "V", # Vid -- this is in Volts
-    SF_INTRUSION => CHK_ENABLE, # Intrusion
-    # Skips here, again
-    SF_BEEP_ENABLE => CHK_BEEP, # Beep enabled, true if gte 0.5
-  } # End default units enum
-  
   ##
   # Wrap the module functions
   # 

@@ -1,21 +1,12 @@
 // ext/lmsensors_base/lmsensors_base.c
 /* Last backed-up version: < 2021-May-21 @ 22:18:35 */
-#include <ruby.h>
-#include <stdbool.h>
-#include <string.h>
-#include <sensors/sensors.h>
-
-#define BUFSIZE 1024
+#include "lmsensors_base.h"
 
 #define LMSLOADER sensors_obj* sensor; TypedData_Get_Struct(self, sensors_obj, &sensors_type, sensor);
 
 #define LMSVALIDATE if (!LMS_OPEN) {\
 return rb_str_new2(\
 "ERROR: Sensors were not configured! Run `LmSensors.init [filename|nil]`"); }
-
-VALUE LmSensors = Qnil;
-VALUE Sensors = Qnil;
-VALUE LMS_OPEN = Qfalse;
 
 // ---------------------------
 // LMSENSORS MODULE METHODS BELOW
@@ -150,17 +141,24 @@ VALUE method_sensors_get_subfeatures(VALUE self) {
     VALUE sf_name = rb_str_new2(sensor->subfeat_ptr->name);
     
     // Set the main keys
+    // Name of the subfeature
     rb_hash_aset(sf, rb_id2sym(rb_intern("name")), sf_name);
-    rb_hash_aset(sf, rb_id2sym(rb_intern("number")),
-      INT2NUM(sensor->subfeat_ptr->number));
-    rb_hash_aset(sf, rb_id2sym(rb_intern("mapping")),
-      INT2NUM(sensor->subfeat_ptr->mapping));
-    rb_hash_aset(sf, rb_id2sym(rb_intern("flags")),
-      INT2NUM(sensor->subfeat_ptr->flags));
     // This is included, because it will usually be put in
     // the subfeature, anyway, and it's faster to do in C
     rb_hash_aset(sf, rb_id2sym(rb_intern("type")), 
       INT2NUM(sensor->feat_ptr->type));
+    // This is the subfeature type
+    rb_hash_aset(sf, rb_id2sym(rb_intern("subtype")), 
+      INT2NUM(sensor->subfeat_ptr->type));
+    // Number of the subfeature
+    rb_hash_aset(sf, rb_id2sym(rb_intern("number")),
+      INT2NUM(sensor->subfeat_ptr->number));
+    // Number of the feature the subfeature is mapped to
+    rb_hash_aset(sf, rb_id2sym(rb_intern("mapping")),
+      INT2NUM(sensor->subfeat_ptr->mapping));
+    // RWX flags
+    rb_hash_aset(sf, rb_id2sym(rb_intern("flags")),
+      INT2NUM(sensor->subfeat_ptr->flags));
     
     // Set the value, if it can be found
     err = sensors_get_value(sensor->chip_ptr, (snr - 1), &value);
@@ -282,23 +280,8 @@ void Init_lmsensors_base() {
   Sensors = rb_define_class_under(LmSensors, "SensorsBase", rb_cData); // Main class
   
   // Define the globals
+  VALUE dec = declare_globals();
   rb_global_variable(&LMS_OPEN);
-  
-  // Map-exporting constants
-  rb_define_global_const("SF_IN", INT2NUM(SENSORS_FEATURE_IN));
-  rb_define_global_const("SF_FAN", INT2NUM(SENSORS_FEATURE_FAN));
-  rb_define_global_const("SF_TEMP", INT2NUM(SENSORS_FEATURE_TEMP));
-  rb_define_global_const("SF_POWER", INT2NUM(SENSORS_FEATURE_POWER));
-  rb_define_global_const("SF_ENERGY", INT2NUM(SENSORS_FEATURE_ENERGY));
-  rb_define_global_const("SF_CURR", INT2NUM(SENSORS_FEATURE_CURR));
-  rb_define_global_const("SF_HUMIDITY", INT2NUM(SENSORS_FEATURE_HUMIDITY));
-  rb_define_global_const("SF_MAX_MAIN", INT2NUM(SENSORS_FEATURE_MAX_MAIN));
-  rb_define_global_const("SF_VID", INT2NUM(SENSORS_FEATURE_VID));
-  rb_define_global_const("SF_INTRUSION", INT2NUM(SENSORS_FEATURE_INTRUSION));
-  rb_define_global_const("SF_MAX_OTHER", INT2NUM(SENSORS_FEATURE_MAX_OTHER));
-  rb_define_global_const("SF_BEEP_ENABLE", INT2NUM(SENSORS_FEATURE_BEEP_ENABLE));
-  rb_define_global_const("SF_MAX", INT2NUM(SENSORS_FEATURE_MAX));
-  rb_define_global_const("SF_UNKNOWN", INT2NUM(SENSORS_FEATURE_UNKNOWN));
   
   // Module methods
   rb_define_module_function(LmSensors, "pro_init", lmsensors_init, 1);
