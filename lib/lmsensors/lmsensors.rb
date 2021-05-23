@@ -1,8 +1,13 @@
 # lib/lmsensors/lmsensors.rb
 
+# Base requires
 require_relative "../lmsensors_base/lmsensors_base"
 require_relative "./lm_constants"
+require_relative "./feature"
 
+##
+# LmSensors is the wrapping module for the entire
+# lm-sensors library.
 module LmSensors
   ##
   # Wrap the module functions
@@ -10,6 +15,27 @@ module LmSensors
   # Contains: 'pro_init', 'pro_cleanup'
   def self.init(filename=nil) self.pro_init(filename) end
   def self.cleanup() self.pro_cleanup end
+  
+  ##
+  # The fmap method maps the feature type to the
+  # subclass that will be used to handle
+  # formatting and analytic post-processing.
+  def self.fmap(f_obj)
+    case f_obj[:type]
+    when SF_IN
+      Feature::Voltage.new(f_obj)
+    when SF_CURR
+      Feature::Current.new(f_obj)
+    when SF_POWER
+      Feature::Power.new(f_obj)
+    when SF_TEMP
+      Feature::Temp.new(f_obj)
+    when SF_FAN
+      Feature::Fan.new(f_obj)
+    else
+      Feature::GenFeature.new(f_obj)
+    end
+  end # End feature mapper
   
   ##
   # Sensors inherits the SensorsBase class
@@ -181,14 +207,7 @@ module LmSensors
               # If the subfeature option is set, return
               # the subfeature data and the unit.
               if @subs then
-                keys.collect do |sfk, sfv|
-                  # Do not include single-item keys
-                  if Hash === sfv then
-                    # Attach the unit type to the subfeature
-                    { sfk => sfv.merge({ unit: LmSensors::UNITS[sfv[:type]] }) }
-                  end
-                # Remove empties, merge the subfeature hashes together
-                end.compact.reduce Hash.new, :merge
+                LmSensors.fmap(keys).fmt
               # If the subfeature option is not set, just return
               # the feature type.
               else { feature => keys[:type] } end
