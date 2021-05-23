@@ -157,6 +157,10 @@ VALUE method_sensors_get_subfeatures(VALUE self) {
       INT2NUM(sensor->subfeat_ptr->mapping));
     rb_hash_aset(sf, rb_id2sym(rb_intern("flags")),
       INT2NUM(sensor->subfeat_ptr->flags));
+    // This is included, because it will usually be put in
+    // the subfeature, anyway, and it's faster to do in C
+    rb_hash_aset(sf, rb_id2sym(rb_intern("type")), 
+      INT2NUM(sensor->feat_ptr->type));
     
     // Set the value, if it can be found
     err = sensors_get_value(sensor->chip_ptr, (snr - 1), &value);

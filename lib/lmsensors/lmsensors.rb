@@ -149,71 +149,43 @@ module LmSensors
     # make sense and overcomplicated the process.
     # If only a single chip is desired, you will need
     # to filter it.
-    def features
+    def features(subs = false, filters = [])
       # For each chip, split it by key and value
       stat.collect do |chip_key, data|
-        if Hash === data then # Only select values that have subvalues
-          data.collect do |k,v|
-            if k == :stat then # Because we are looking for the stat hash
-              # We want to map each feature to its type
-              # so we can properly attach the units
-              v.keys.collect { |sk,sv| { sk => v[sk][:type] } }
+        fdata = if Hash === data then
+          data[:stat].collect do |feature, keys|
+            # Is the filter set?
+            no_filter = filters.empty?
+            # Is the feature of a type included in the filter?
+            included = filters.include?(keys[:type])
+            
+            # If the filter is NOT set, OR the keys IS included
+            # in the filter, proceed.
+            if no_filter or included then
+              # If the subfeature option is set, return
+              # the subfeature data and the unit.
+              if subs then
+                keys.collect do |sfk, sfv|
+                  # Do not include single-item keys
+                  if Hash === sfv then
+                    # Attach the unit type to the subfeature
+                    { sfk => sfv.merge({ unit: LmSensors::UNITS[sfv[:type]] }) }
+                  end
+                # Remove empties, merge the subfeature hashes together
+                end.compact.reduce Hash.new, :merge
+              # If the subfeature option is not set, just return
+              # the feature type.
+              else { feature => keys[:type] } end
+            # If filtered and not included, return empty hash
             else {} end
-          end
-        else {} end.then do |fs|
-          # Ignore any empty hashes created as placeholders.
-          # Merge the features to a feature=>type hash, and
-          # flatten it, because each feature can only exist once.
-          # 
-          # This allows us to filter features by a type, such as
-          # SF_TEMP or SF_FAN.
-          [ chip_key, fs.reject { |item| item.empty? } .flatten 
-            .reduce(Hash.new, :merge) ]
+          # Merge the feature hashes together
+          end.reduce Hash.new, :merge
         end
-      end.to_h
+        # Create a chip to formatted feature hash
+        { chip_key => fdata }
+      # Merge them together as a path=>data hash
+      end.reduce Hash.new, :merge
     end # End features collector
-    
-    ##
-    # Return the list of features for a sensor.
-    # This will return the features for a selected
-    # sensor. Will not work on the whole list.
-    def _features(chip, cnt=false)
-      k = chip.keys
-      # Only perform filtering, if it's a hash and has a single item
-      if Hash === chip and k.count == 1 then
-        chip[k[0]].then do |v|
-          data = v[:stat].keys
-          # If the count flag, cnt, is set, include a count
-          cnt ? { features: data, count: data.length } : data
-        end
-      else # Print error, if chip is either not a hash or has multiple items
-        STDERR.puts "::Sensors ERROR:: Please input only a chip for 'features'"
-      end
-    end # End features collector
-    
-    ##
-    # Get the subfeatures of a sensor
-    def _subfeatures(chip, cnt=false)
-      _features(chip).collect do |k,v|
-        du = v[:def_units]
-        v.select { |sk, sv| sk != :def_units }
-          .collect do |ssk, ssv|
-            unit = UNITS[du]
-            fmt = Sensors.fmt_sub(ssv[:value], unit)
-            { ssk => ssv.merge({ unit_idx: du,
-                unit: unit, value_fmt: fmt, }) }
-          end
-      end.flatten.reduce(Hash.new, :merge)
-        .then do |data|
-          cnt ? { subfeatures: data, count: data.length } : data
-        end
-    end # End subfeature getter
-    
-    ##
-    # Format all the chips passed or available
-    def fmt(chip=stat)
-      #chip.collect
-    end
     
     ##
     # Get the number of features available for
