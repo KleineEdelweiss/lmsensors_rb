@@ -23,17 +23,21 @@ module LmSensors
   def self.fmap(f_obj)
     case f_obj[:type]
     when SF_IN
-      Feature::Voltage.new(f_obj)
+      Feature::Voltage.new f_obj
     when SF_CURR
-      Feature::Current.new(f_obj)
+      Feature::Current.new f_obj
     when SF_POWER
-      Feature::Power.new(f_obj)
+      Feature::Power.new f_obj
     when SF_TEMP
-      Feature::Temp.new(f_obj)
+      Feature::Temp.new f_obj
     when SF_FAN
-      Feature::Fan.new(f_obj)
+      Feature::Fan.new f_obj
+    when SF_INTRUSION
+      Feature::Alarm.new f_obj
+    when SF_BEEP_ENABLE
+      Feature::Beep.new f_obj
     else
-      Feature::GenFeature.new(f_obj)
+      Feature::GenFeature.new f_obj
     end
   end # End feature mapper
   
@@ -207,19 +211,19 @@ module LmSensors
               # If the subfeature option is set, return
               # the subfeature data and the unit.
               if @subs then
-                LmSensors.fmap(keys).fmt
+                LmSensors.fmap(keys)
               # If the subfeature option is not set, just return
               # the feature type.
               else { feature => keys[:type] } end
             # If filtered and not included, return empty hash
             else {} end
           # Merge the feature hashes together
-          end.reduce Hash.new, :merge
+          end#.reduce Hash.new, :merge
         end
         # Create a chip to formatted feature hash
         { chip_key => fdata }
       # Merge them together as a path=>data hash
-      end.reduce Hash.new, :merge
+      end#.reduce Hash.new, :merge
     end # End features collector
   end # End Sensors object class
 end # End LmSensors module

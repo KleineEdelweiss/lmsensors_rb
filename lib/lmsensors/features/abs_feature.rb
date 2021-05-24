@@ -19,6 +19,7 @@ module LmSensors
       # Constructor
       def initialize(data)
         @data = data
+        @fstruct = {}
       end # end constructor
       
       ##
@@ -35,6 +36,14 @@ module LmSensors
         
         @fstruct
       end # End formatting of new struct type
+      
+      ##
+      # Perform the unit calculations on the new
+      # feature struct
+      def calculate
+        STDERR.puts "'.calculate' not implemented for #{self.class}"
+        {}
+      end # End calculation method
     end # End abstract Feature class
   end # End Feature module
 end # End LmSensors inclusion
