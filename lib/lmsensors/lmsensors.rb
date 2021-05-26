@@ -3,6 +3,10 @@
 # Base requires
 require_relative "../lmsensors_base/lmsensors_base"
 require_relative "./lm_constants"
+
+require_relative "./sensors/sensorspawner"
+require_relative "./sensors/sensor"
+
 require_relative "./feature"
 
 ##
