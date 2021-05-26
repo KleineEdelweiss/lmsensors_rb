@@ -13,6 +13,7 @@ module LmSensors
   # is a specific object dedicated to an
   # individual sensor chip.
   class Sensor < LmSensors::AbsSensor
+    attr_reader :path, :adapter
     ##
     # Find a device sensors by its path, in such
     # a case where the app already has a device from
@@ -47,8 +48,11 @@ module LmSensors
           return nil
         end # End check for valid sensor path
         
-        # Set the name and return it
-        @chip_name = sensors[path][:name]
+        # Set the data and return the chip name
+        data = sensors[path]
+        @chip_name = data[:name]
+        @adapter = data[:adapter]
+        @path = data[:path]
         @chip_name
       end # End enumeration handler
     end # End locate by path
@@ -57,11 +61,7 @@ module LmSensors
     # Stat will return the values and names
     # of all the features associated with the
     # currently-selected chip.
-    def stat(cnt=false)
-      # If cnt flag is not set, drop the count from the stat
-      pro_enum(true, @chip_name).then do |chips|
-        cnt ? chips.update({count: chips.count}) : chips end
-    end # End stat method
+    def stat() pro_enum(true, @chip_name)[@path][:stat] end
     # Pseudo-alias abstract enum to stat, for this class
     def enum(*args) stat end
     
@@ -90,5 +90,37 @@ module LmSensors
       end
       total # Return accumulator
     end # End count of subfeatures
+    
+    ##
+    # Return a list of features for the selected
+    # chip. As this 3rd implementation of the class
+    # only supports a single chip per sensor, this
+    # is almost ret-conning the 2nd version.
+    def features
+      # For each chip, split it by key and value
+      data = stat.collect do |feature, keys|
+        # Is the filter set?
+        no_filter = @filters.empty?
+        # Is the feature of a type included in the filter?
+        included = @filters.include?(keys[:type])
+        
+        # If the filter is NOT set, OR the keys IS included
+        # in the filter, proceed.
+        if no_filter or included then
+          # If the subfeature option is set, return
+          # the subfeature data and the unit.
+          if @subs then
+            LmSensors.fmap(keys)
+          # If the subfeature option is not set, just return
+          # the feature type.
+          else { feature => keys[:type] } end
+        # If filtered and not included, return empty hash
+        else {} end
+        # Merge the feature hashes together
+      end
+      # Create a chip to formatted feature hash
+      { name => data }
+      # Merge them together as a path=>data hash
+    end # End features collector
   end # End Sensor class
 end # End LmSensors append

@@ -17,16 +17,16 @@ module LmSensors
     attr_reader :chip_name, :filters, :subs
     
     ##
-    # Alias :name to :chip_name
-    alias :name :chip_name
-    
-    ##
     # Constructor
     def initialize
       pro_initialize
       unset_filters
       @subs = false
     end # End constructor
+    
+    ##
+    # Get the chip_name
+    def name() @chip_name end
     
     ##
     # Set the sensor's filters, the types that
