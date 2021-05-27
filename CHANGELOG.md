@@ -1,2 +1,2 @@
 ### CHANGELOG -- (Ruby LmSensors) ###
-[nothing yet...]
+1) 0.1.0, unreleased: 2021-May-26 -- Several major changes to the API access functionality. Massive levels of abstraction, per use cases noted from the Ruby programming server. [t. Edelweiss]

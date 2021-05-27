@@ -44,5 +44,20 @@ module LmSensors
         item
       end
     end # End sensor chip enumerator
+    
+    ##
+    # Select a specific chip by its path.
+    def locate(path, set=false)
+      dir = path_valid?(path)
+      items = []
+      if dir then
+        items = enum.select { |s| s.path == dir }
+      end.flatten
+      if items.length == 1 then
+        item = items[0]
+        if set then set_name(item.name) end
+        item
+      else nil end
+    end # End locate of specific chip
   end # End SensorSpawner class
 end # End LmSensors append

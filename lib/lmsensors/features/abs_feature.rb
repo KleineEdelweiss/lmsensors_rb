@@ -14,7 +14,7 @@ module LmSensors
     # to handle generic formatting on feature types that
     # generally will not need additional post-processing.
     class GenFeature
-      attr_reader :fstruct, :name, :subfs, :type
+      attr_reader :ftype, :fstruct, :name, :subfs, :type
       
       # Constructor
       def initialize(name, data)
@@ -22,6 +22,7 @@ module LmSensors
         @type = data[:type]
         @subfs = data
         @subfs.delete(:type)
+        @ftype = LmSensors::UNITS[@type]
         @fstruct = {}
       end # End constructor
       

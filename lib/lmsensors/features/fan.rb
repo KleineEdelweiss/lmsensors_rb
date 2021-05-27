@@ -20,25 +20,18 @@ module LmSensors
       # Format the fan subfeature to also include
       # current speed as a percentage of max.
       def fmt
-        type = nil
         @subfs.map do |key, val|
-          # Skip type and only set it
-          if key == :type then 
-            type = LmSensors::UNITS[val]
-            next 
-          end
-          
           # Format all the other subtypes
           stype = val[:subtype]
           skey = FORMAT[stype]
           if skey then
             @fstruct[skey] = val[:value] end
-          @fstruct[key] = "#{val[:value]} #{type}"
+          @fstruct[key] = "#{val[:value].round} #{@ftype}"
         end # End mapping loop
         # Format the outputs
-        @fstruct[:input_fmt] = "#{@fstruct[:input]} #{type}"
-        @fstruct[:min_fmt] = "#{@fstruct[:min]} #{type}"
-        @fstruct[:max_fmt] = "#{@fstruct[:max]} #{type}"
+        @fstruct[:input_fmt] = "#{@fstruct[:input].round} #{@ftype}"
+        @fstruct[:min_fmt] = "#{@fstruct[:min].round} #{@ftype}"
+        @fstruct[:max_fmt] = "#{@fstruct[:max].round} #{@ftype}"
         
         # Format the usage percent
         perc = ((@fstruct[:input].to_f / @fstruct[:max]) * 100).round(2)

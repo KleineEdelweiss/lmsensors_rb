@@ -22,34 +22,21 @@ module LmSensors
     # Sets the name of the sensor, as well, so this should
     # be used as an instance.
     def locate(path)
-      # Check that the path argument is a string
-      if (!String === path) then
-        STDERR.puts "::Sensor ERROR:: Path must be string!"
-        return nil
-      end # End check for correct path
-      # Clean the path input
-      path = path.strip.gsub(/\/*$/, "")
-      
-      # Check if path is a directory, else exit early.
-      # Do not need to check File.exist? first, b/c this
-      # already returns nil, if it doesn't.
-      if !File.directory?(path) then
-        STDERR.puts "::Sensors ERROR:: Path is either invalid or not a directory!"
-        return nil
-      end # End directory check
-      
+      # Validate the path
+      dir = path_valid?(path)
+      if !dir then return nil end
       # Determine if it's a valid sensor, since the
       # sensors here use the path as the index.
       # If so, set it as this object's name
       pro_enum(nil, nil).then do |sensors|
         # Return early, if it's not in the keys
-        if !sensors.keys.include?(path) then
+        if !sensors.keys.include?(dir) then
           STDERR.puts "Path does not have an associated sensor"
           return nil
         end # End check for valid sensor path
         
         # Set the data and return the chip name
-        data = sensors[path]
+        data = sensors[dir]
         @chip_name = data[:name]
         @adapter = data[:adapter]
         @path = data[:path]
@@ -68,13 +55,9 @@ module LmSensors
     ##
     # Get the number of features available for
     # the current name (or total features to be
-    # read for all sensors).
-    def count_f
-      total = 0 # Accumulator
-      # Add up all the features
-      stat.each { |_, v| total += v[:stat].count }
-      total # Return accumulator
-    end # End count of features
+    # read for all sensors). This overrides the
+    # abstract ``.count`` method.
+    def count() stat.count end
     
     ##
     # Get the number of subfeatures available for
@@ -83,10 +66,8 @@ module LmSensors
     def count_sf
       total = 0 # Accumulator
       stat.each do |_, v|
-        feats = v[:stat].collect do |_k, sv|
-          # Ignore the :type symbol
-          total += (sv.select { |item| :type != item } .count)
-        end
+        # Ignore the :type symbol
+        total += (v.select { |item| :type != item } .count)
       end
       total # Return accumulator
     end # End count of subfeatures
