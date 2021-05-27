@@ -21,7 +21,7 @@ module LmSensors
       # current speed as a percentage of max.
       def fmt
         type = nil
-        @data.map do |key, val|
+        @subfs.map do |key, val|
           # Skip type and only set it
           if key == :type then 
             type = LmSensors::UNITS[val]

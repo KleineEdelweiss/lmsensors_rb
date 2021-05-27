@@ -24,24 +24,24 @@ module LmSensors
   # The fmap method maps the feature type to the
   # subclass that will be used to handle
   # formatting and analytic post-processing.
-  def self.fmap(f_obj)
+  def self.fmap(name, f_obj)
     case f_obj[:type]
     when SF_IN
-      Feature::Voltage.new f_obj
+      Feature::Voltage.new name, f_obj
     when SF_CURR
-      Feature::Current.new f_obj
+      Feature::Current.new name, f_obj
     when SF_POWER
-      Feature::Power.new f_obj
+      Feature::Power.new name, f_obj
     when SF_TEMP
-      Feature::Temp.new f_obj
+      Feature::Temp.new name, f_obj
     when SF_FAN
-      Feature::Fan.new f_obj
+      Feature::Fan.new name, f_obj
     when SF_INTRUSION
-      Feature::Alarm.new f_obj
+      Feature::Alarm.new name, f_obj
     when SF_BEEP_ENABLE
-      Feature::Beep.new f_obj
+      Feature::Beep.new name, f_obj
     else
-      Feature::GenFeature.new f_obj
+      Feature::GenFeature.new name, f_obj
     end
   end # End feature mapper
   

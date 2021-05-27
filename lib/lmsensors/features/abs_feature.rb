@@ -14,22 +14,29 @@ module LmSensors
     # to handle generic formatting on feature types that
     # generally will not need additional post-processing.
     class GenFeature
-      attr_reader :data, :fstruct
+      attr_reader :fstruct, :name, :subfs, :type
       
       # Constructor
-      def initialize(data)
-        @data = data
+      def initialize(name, data)
+        @name = name
+        @type = data[:type]
+        @subfs = data
+        @subfs.delete(:type)
         @fstruct = {}
-      end # end constructor
+      end # End constructor
+      
+      ##
+      # Return just the feature keys
+      def feature() { name: @name, type: @type} end
       
       ##
       # Format the output struct
       def fmt
-        @fstruct = @data.collect do |sfk, sfv|
+        @fstruct = @subfs.collect do |sfk, sfv|
           # Do not include single-item keys
           if Hash === sfv then
             # Attach the unit type to the subfeature
-            { sfk => sfv.merge({ unit: LmSensors::UNITS[sfv[:type]] }) }
+            { sfk => sfv.merge({ unit: LmSensors::UNITS[@type] }) }
           end
         # Remove empties, merge the subfeature hashes together
         end.compact.reduce Hash.new, :merge

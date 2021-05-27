@@ -110,17 +110,13 @@ module LmSensors
           # If the subfeature option is set, return
           # the subfeature data and the unit.
           if @subs then
-            LmSensors.fmap(keys)
+            LmSensors.fmap(feature, keys)
           # If the subfeature option is not set, just return
           # the feature type.
           else { feature => keys[:type] } end
-        # If filtered and not included, return empty hash
-        else {} end
-        # Merge the feature hashes together
-      end
-      # Create a chip to formatted feature hash
-      { name => data }
-      # Merge them together as a path=>data hash
+        # If filtered and not included, return empty array
+        else [] end
+      end.flatten # Remove any empty units
     end # End features collector
   end # End Sensor class
 end # End LmSensors append
