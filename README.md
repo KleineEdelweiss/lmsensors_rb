@@ -83,6 +83,35 @@ fs[0].feature
 1) Publish version 0.1.0
 
 ### INSTALLATION ###
+This wrapper requires the header files for ``lmsensors`` to be installed. For some systems, it will come with the userspace package directly. For others, it is a separate package. The header required is ``sensors.h``.
+
+NOTE: Below is how you can install it on various distros. As I use Arch and Debian, I had to look up the others, so if there is an issue, please submit the correction, and I will fix it.
+
+Arch:
+```
+sudo pacman -S lm_sensors
+```
+Debian-like (Debian, Ubuntu, Mint):
+```
+sudo apt install lm-sensors libsensors-dev
+```
+Fedora-like:
+```
+sudo yum install lm_sensors lm_sensors-devel
+sudo dnf install lm_sensors lm_sensors-devel
+```
+Gentoo:
+```
+sudo emerge --ask sys-apps/lm_sensors
+```
+For OpenSUSE, you will need to find a package that provides ``sensors.h``
+https://www.mankier.com/8/zypper.
+However, it appears that the correct way to install it will be:
+```
+sudo zypper install libsensors4-devel
+```
+
+Then, you can install it for Ruby:
 ```
 gem install lmsensors
 ```

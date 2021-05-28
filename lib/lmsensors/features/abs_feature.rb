@@ -2,6 +2,7 @@
 
 # Make sure to include the constants
 require_relative "../lm_constants"
+require_relative "./formatters"
 
 # Append to the main module
 module LmSensors
@@ -14,16 +15,18 @@ module LmSensors
     # to handle generic formatting on feature types that
     # generally will not need additional post-processing.
     class GenFeature
-      attr_reader :ftype, :fstruct, :name, :subfs, :type
+      attr_reader :default_formatter, :ftype, :name, :subfs, :type
+      attr_accessor :fstruct
       
+      ##
       # Constructor
       def initialize(name, data)
-        @name = name
-        @type = data[:type]
-        @subfs = data
-        @subfs.delete(:type)
-        @ftype = LmSensors::UNITS[@type]
-        @fstruct = {}
+        # Attach the default formatter
+        def_fmt
+        # Attach the base data for this instance
+        @name, @type, @subfs = name, data[:type], data
+        @subfs.delete(:type) # Remove :type from the hash (for cleaner iteration)
+        @ftype, @fstruct = LmSensors::UNITS[@type], {} # Formatted data
       end # End constructor
       
       ##
@@ -31,18 +34,20 @@ module LmSensors
       def feature() { name: @name, type: @type} end
       
       ##
-      # Format the output struct
-      def fmt
-        @fstruct = @subfs.collect do |sfk, sfv|
-          # Do not include single-item keys
-          if Hash === sfv then
-            # Attach the unit type to the subfeature
-            { sfk => sfv.merge({ unit: LmSensors::UNITS[@type] }) }
-          end
-        # Remove empties, merge the subfeature hashes together
-        end.compact.reduce Hash.new, :merge
-        
-        @fstruct
+      # Set the default formatter for the subclass.
+      # If not overridden, will be be the default for
+      # the abstract general class.
+      def def_fmt() @default_formatter = LmSensors::Feature::BASE_FMT end
+      
+      ##
+      # Format the output struct. This uses
+      # a default formatter, but any desired formatting
+      # function can be passed. The formatter should be
+      # a lambda or proc type.
+      def fmt(callback=@default_formatter)
+        # If the callback is the wrong type, sue the default
+        cb = Proc === callback ? callback : @default_formatter
+        cb.call(self)
       end # End formatting of new struct type
       
       ##
