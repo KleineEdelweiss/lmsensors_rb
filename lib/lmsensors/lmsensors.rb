@@ -36,10 +36,10 @@ module LmSensors
       Feature::Temp.new name, f_obj
     when SF_FAN
       Feature::Fan.new name, f_obj
-    when SF_INTRUSION
-      Feature::Alarm.new name, f_obj
-    when SF_BEEP_ENABLE
-      Feature::Beep.new name, f_obj
+    #when SF_INTRUSION
+    #  Feature::Alarm.new name, f_obj
+    #when SF_BEEP_ENABLE
+    #  Feature::Beep.new name, f_obj
     else
       Feature::GenFeature.new name, f_obj
     end

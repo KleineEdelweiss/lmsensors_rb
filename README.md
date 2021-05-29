@@ -77,7 +77,8 @@ fs[0].feature
 
 ### TO-DO ###
 1) A lot more cleaning than originally anticipated
-1) Finish several subclasses of the GenFeature type
+1) ~~Finish several~~ _MINIMIZE_ subclasses of the GenFeature type[, as they largely only need to override the format method]
+1) Remove some default formatting functions and attach them directly to the subclasses
 1) Add in some more simplifying methods for formatting and calculations
 1) Write up the rest of the documentation
 1) Publish version 0.1.0

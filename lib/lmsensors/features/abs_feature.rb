@@ -15,8 +15,7 @@ module LmSensors
     # to handle generic formatting on feature types that
     # generally will not need additional post-processing.
     class GenFeature
-      attr_reader :default_formatter, :ftype, :name, :subfs, :type
-      attr_accessor :fstruct
+      attr_reader :default_formatter, :name, :subfs, :type, :unit
       
       ##
       # Constructor
@@ -26,7 +25,7 @@ module LmSensors
         # Attach the base data for this instance
         @name, @type, @subfs = name, data[:type], data
         @subfs.delete(:type) # Remove :type from the hash (for cleaner iteration)
-        @ftype, @fstruct = LmSensors::UNITS[@type], {} # Formatted data
+        @unit = LmSensors::UNITS[@type] # Units
       end # End constructor
       
       ##
@@ -46,17 +45,10 @@ module LmSensors
       # a lambda or proc type.
       def fmt(callback=@default_formatter)
         # If the callback is the wrong type, sue the default
+        puts "Inside formatter abs call"
         cb = Proc === callback ? callback : @default_formatter
         cb.call(self)
       end # End formatting of new struct type
-      
-      ##
-      # Perform the unit calculations on the new
-      # feature struct
-      def calculate
-        STDERR.puts "'.calculate' not implemented for #{self.class}"
-        {}
-      end # End calculation method
     end # End abstract Feature class
   end # End Feature module
 end # End LmSensors inclusion

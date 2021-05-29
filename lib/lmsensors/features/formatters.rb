@@ -12,38 +12,48 @@ module LmSensors
   # Wrap the procs in the Feature submodule
   module Feature
     ##
-    # Base formatting for anything else
+    # Base formatting for anything else.
+    # This pretty much just converts a general
+    # feature object into a hash, so it can be
+    # indexed in post-processing.
     BASE_FMT = lambda do |feature|
-      feature.subfs.collect do |sfk, sfv|
-        # Do not include single-item keys
-        if Hash === sfv then
-          # Attach the unit type to the subfeature
-          { sfk => sfv.merge({ unit: LmSensors::UNITS[feature.type] }) }
-        end
-      # Remove empties, merge the subfeature hashes together
-      end.compact.reduce Hash.new, :merge
+      # Attach the main feature name and unit type
+      fstruct = { name: feature.name, type: feature.type, unit: feature.unit }
+      # Merge the subfeatures
+      fstruct.merge(feature.subfs)
     end # End base formatter proc
     
     ##
-    # Default fan formatting proc
+    # Default formatting proc for
+    # the X_FAN subtype.
     FMT_FAN = lambda do |feature|
-      feature.subfs.map do |key, val|
-        # Format all the other subtypes
-        stype = val[:subtype]
-        skey = feature.class::FORMAT[stype]
-        if skey then
-          feature.fstruct[skey] = val[:value] end
-        feature.fstruct[key] = "#{val[:value].round} #{feature.ftype}"
-      end # End mapping loop
-      # Format the outputs
-      feature.fstruct[:input_fmt] = "#{feature.fstruct[:input].round} #{feature.ftype}"
-      feature.fstruct[:min_fmt] = "#{feature.fstruct[:min].round} #{feature.ftype}"
-      feature.fstruct[:max_fmt] = "#{feature.fstruct[:max].round} #{feature.ftype}"
+      puts "Fan formatter"
+      # Formatted structure
+      unit = feature.unit
+      out = { name: feature.name, type: feature.type, unit: unit }
+      tmp = { input: nil, max: nil }
       
-      # Format the usage percent
-      perc = ((feature.fstruct[:input].to_f / feature.fstruct[:max]) * 100).round(2)
-      feature.fstruct[:usage] = "#{perc}%"
-      feature.fstruct
+      # Format the outputs
+      # Strip each, in case the unit is empty
+      feature.subfs.values.map do |v|
+        case v[:subtype]
+        when SSF_FAN_INPUT
+          tmp[:input] = v[:value]
+          out[:input] = "#{v[:value]} #{unit}".strip
+        when SSF_FAN_MAX
+          tmp[:max] = v[:value]
+          out[:max] = "#{v[:value]} #{unit}".strip
+        when SSF_FAN_MIN
+          out[:min] = "#{v[:value]} #{unit}".strip
+        end
+      end # End value mapper for fan
+      
+      # Calculate the percentage of max speed of fan
+      if tmp[:max] and tmp[:input] then
+        perc = ((tmp[:input].to_f / tmp[:max]) * 100).round(2)
+        out[:percent] = "#{perc}%".strip
+      end # Only if both are present
+      out
     end # End default fan formatter
   end # End wrap in Feature
 end # End wrap in LmSensors
