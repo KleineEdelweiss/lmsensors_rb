@@ -33,7 +33,7 @@ Gem::Specification.new do |spec|
   spec.files = Dir.glob("lib/**/*")
   
   # Rdoc options
-  spec.extra_rdoc_files = Dir["README.md","CHANGELOG.md", "LICENSE.txt"]
+  spec.extra_rdoc_files = Dir["README.md","CHANGELOG.md", "LICENSE.txt", "FMAPPER.md"]
   spec.rdoc_options += [
     "--title", "LmSensors -- Lmsensors wrapper in the C-Ruby API",
     "--main", "README.md",

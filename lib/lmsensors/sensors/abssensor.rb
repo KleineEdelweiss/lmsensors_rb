@@ -14,14 +14,15 @@ module LmSensors
   # a sensor-type object and provides a base interface
   # for required functions (operates like a trait).
   class AbsSensor < LmSensors::SensorsBase
-    attr_reader :chip_name, :filters, :subs
+    attr_reader :chip_name, :filters, :fmap, :fmt, :subs
     
     ##
     # Constructor
     def initialize
       pro_initialize
       unset_filters
-      @subs = false
+      @fmt = @subs = false
+      @fmap = LmSensors::DEF_FMAP
     end # End constructor
     
     ##
@@ -34,7 +35,7 @@ module LmSensors
     def set_filters(arr)
       if Array === arr then
         @filters = arr.select { |item| LmSensors::UNITS.include? item } .sort
-      else STDERR.puts "Filters must be an array" end
+      else STDERR.puts "::Sensors ERROR:: Filters must be an array" end
     end # End set filters
     
     ##
@@ -45,6 +46,47 @@ module LmSensors
     # Toggle whether this sensor also returns
     # subfeatures on a feature list request.
     def toggle_subs() @subs = !@subs end
+    
+    ##
+    # Toggle if the sensor will report with
+    # formatted output or unformatted. Default
+    # is to report unformatted.
+    def toggle_fmt() @fmt = !@fmt end
+    
+    ##
+    # Set the format mapper for the different types.
+    # This method should receive a proc that maps to different
+    # feature formatters.
+    def set_fmap(map)
+      # Only accept a proc/lambda for format mapping
+      if Proc === map then
+        if map.arity != 2 then
+          if !$LmSensorsIgnArity then
+            STDERR.puts <<~EMSG
+            ::SensorSpawner WARNING:: @fmap arity should be 2 and will
+            NOT WORK without being overridden in a custom subclass.
+            
+            If you are receiving this message, and you have already
+            overridden the subclasses and format handling, you should
+            set the global variable $LmSensorsIgnArity to 'true'.
+            
+            This is only a warning and will not stop the map from
+            being set, even if it is invalid.
+            
+            This warning will NOT be displayed again in this run.
+            EMSG
+            $LmSensorsIgnArity = true
+          end
+          @fmap = map
+        end
+      else # If it's not a proc, spit out an error
+        STDERR.puts "::Sensors ERROR:: Format map must be a proc/lambda"
+      end
+    end # End format mapper
+    
+    ##
+    # Reset the formatting map
+    def reset_fmap() @fmap = LmSensors::DEF_FMAP end
     
     ##
     # Abstract enum must be implemented

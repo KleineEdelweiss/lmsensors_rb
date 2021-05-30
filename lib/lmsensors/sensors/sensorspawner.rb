@@ -41,6 +41,7 @@ module LmSensors
       pro_enum(nil, name).collect do |index, chip|
         item = LmSensors::Sensor.new
         item.locate index
+        item.set_fmap(@fmap)
         item
       end
     end # End sensor chip enumerator

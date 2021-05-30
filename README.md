@@ -3,6 +3,13 @@ LmSensors is a C-Ruby API wrapper for ``lmsensors`` (which runs the ``sensors`` 
 
 ### USAGE ###
 ```ruby
+# Global value only relevant to overriding format-mapping
+# functions. This is 'false', by default, but when set to
+# 'true', it disables a warning about the arity passed to
+# the format-mapping method of the abstract GenSensor, as
+# this class cannot guarantee knowing subclasses.
+$LmSensorsIgnArity
+
 LmSensors.init # Initialize the Sensors system data
 LmSensors.cleanup # Cleanup the Sensors data, when done
 
@@ -22,6 +29,18 @@ s.count # or s.count_s
 # ``.enum`` will return a list of LmSensors::AbsSensor objects
 # or their subclasses.
 items = s.enum
+
+# Sets the fmap of the sensor. If this is set on a SensorSpawner,
+# it will automatically use the same format map for any sensors it
+# creates. If it is set on a single Sensor, it will only affect that
+# one. This method can be used to pass in a custom Proc/Lambda
+# object for the sensor in question to use as its feature-formatting
+# selector. By default, the format will be 'LmSensors::DEF_FMAP'.
+# 
+# For more details on this, please view 'FMAPPER.md'
+s.set_fmap :your_proc
+
+s.reset_fmap # Reset it back to the default
 
 # Where :idx is an int in range, assign new
 # AbsSensor object to sobj.
@@ -56,7 +75,13 @@ sobj.unset_filters # Unset the filters -- returns ALL
 
 # Toggle whether to receive the subfeatures or
 # only to receive the features with their type.
+# By default, this is false, and you will receive the
+# type only.
 sobj.toggle_subs
+
+# Toggle whether to format output. By default, this is false.
+# When false, it returns the raw state of the feature object.
+sobj.toggle_fmt
 
 # Assign the features from a Sensor.
 # This will return an array of Feature objects.
@@ -64,6 +89,9 @@ fs = sobj.features
 
 # Format the feature data. Some types will have a pre-defined
 # format, but for others, you can derive LmSensors::Feature::GenFeature.
+# 
+# This method can also take a separate formatter. The default is
+# 'LmSensors::Feature::BASE_FMT', which returns it as a simple hash.
 fs[0].fmt # Will format the first feature returned.
 
 # This will return the feature type and name.
@@ -76,10 +104,8 @@ fs[0].feature
 ```
 
 ### TO-DO ###
-1) A lot more cleaning than originally anticipated
-1) ~~Finish several~~ _MINIMIZE_ subclasses of the GenFeature type[, as they largely only need to override the format method]
-1) Remove some default formatting functions and attach them directly to the subclasses
-1) Add in some more simplifying methods for formatting and calculations
+1) Clean up the code and current documentation
+1) Run some final tests
 1) Write up the rest of the documentation
 1) Publish version 0.1.0
 

@@ -93,6 +93,12 @@ VALUE declare_globals() {
   rb_define_global_const("SSF_FAN_MIN", INT2NUM(SENSORS_SUBFEATURE_FAN_MIN));
   rb_define_global_const("SSF_FAN_MAX", INT2NUM(SENSORS_SUBFEATURE_FAN_MAX));
   
+  // Alarms
+  rb_define_global_const("SSF_INTRUDE_ALARM",
+    INT2NUM(SENSORS_SUBFEATURE_INTRUSION_ALARM));
+  rb_define_global_const("SSF_INTRUDE_BEEP",
+    INT2NUM(SENSORS_SUBFEATURE_INTRUSION_BEEP));
+  
   // Return complete
   return Qtrue;
 }

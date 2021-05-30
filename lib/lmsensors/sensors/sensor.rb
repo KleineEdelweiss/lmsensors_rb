@@ -91,13 +91,15 @@ module LmSensors
           # If the subfeature option is set, return
           # the subfeature data and the unit.
           if @subs then
-            LmSensors.fmap(feature, keys)
+            @fmap.call(feature, keys)
           # If the subfeature option is not set, just return
           # the feature type.
           else { feature => keys[:type] } end
         # If filtered and not included, return empty array
         else [] end
       end.flatten # Remove any empty units
+      # If format is set, format the output
+      if (@fmt) then data.collect { |item| item.fmt } else data end
     end # End features collector
   end # End Sensor class
 end # End LmSensors append

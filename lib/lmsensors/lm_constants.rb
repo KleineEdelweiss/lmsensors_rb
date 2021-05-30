@@ -6,10 +6,37 @@
 # and it is inconvenient to keep them all in one.
 module LmSensors
   ##
+  # The default feature map method maps the feature 
+  # type to the subclass that will be used to handle
+  # formatting and analytic post-processing.
+  DEF_FMAP = lambda do |name, f_obj|
+    case f_obj[:type]
+    when SF_IN
+      Feature::Voltage.new name, f_obj
+    when SF_CURR
+      Feature::Current.new name, f_obj
+    when SF_POWER
+      Feature::Power.new name, f_obj
+    when SF_TEMP
+      Feature::Temp.new name, f_obj
+    when SF_FAN
+      Feature::Fan.new name, f_obj
+    when SF_HUMIDITY
+      Feature::Humidity.new name, f_obj
+    when SF_INTRUSION
+      Feature::Alarm.new name, f_obj
+    when SF_BEEP_ENABLE
+      Feature::Beep.new name, f_obj
+    else
+      Feature::GenFeature.new name, f_obj
+    end
+  end # End default feature mapper
+  
+  ##
   # Lambda function to determine the enabled
   # state of the sensor subfeature.
   CHK_BEEP = lambda { |v| v < 0.5 ? "disabled" : "enabled" }
-  CHK_ENABLE = lambda { |v| v.zero? ? "disabled" : "enabled" }
+  CHK_ALARM = lambda { |v| v.zero? ? "OK" : "ALARM" }
   
   ##
   # Index of units -- this will map the expected
@@ -30,10 +57,10 @@ module LmSensors
     SF_POWER => "W", # Watts
     SF_ENERGY => "J", # Energy, Joules
     SF_CURR => "A", # Current, Amps
-    SF_HUMIDITY => "%", # Humidity, percent
+    SF_HUMIDITY => "% RH", # Humidity, percent
     # Skips here
     SF_VID => "V", # Vid -- this is in Volts
-    SF_INTRUSION => CHK_ENABLE, # Intrusion
+    SF_INTRUSION => CHK_ALARM, # Intrusion
     # Skips here, again
     SF_BEEP_ENABLE => CHK_BEEP, # Beep enabled, true if gte 0.5
   } # End default units enum
@@ -50,97 +77,109 @@ module LmSensors
   # 
   # MIN, MAX, a couple HYST (hysteresis) types, INPUT,
   # and a couple AVERAGE types.
+  # 
+  # NOTE: For the MOST part, the below list is provided
+  # for convenience, only. You can use it to create your
+  # own mappers, if you are not sure what subtypes are
+  # included in the normal feature objects.
+  # 
+  # I had actually considered removing everything below,
+  # but I realized that simply swapping the keys with the
+  # values actually provides a simpler way for others to
+  # access the types and provide some default key types
+  # they might want to use in their subclasses, even if it's 
+  # somewhat redundant.
   SSF_SUBTYPES = {
     # Voltages
     SF_IN => {
       # Inputs
-      input: SSF_IN_INPUT,
+      SSF_IN_INPUT => :input,
       
       # Edge readings
-      lowest: SSF_IN_LOW,
-      highest: SSF_IN_HIGH,
+      SSF_IN_LOW => :lowest,
+      SSF_IN_HIGH => :highest,
       
       # Minima and maxima
-      min: SSF_IN_MIN,
-      max: SSF_IN_MAX,
+      SSF_IN_MIN => :min,
+      SSF_IN_MAX => :max,
       
       # Critical levels
-      lcrit: SSF_IN_LCRIT,
-      crit: SSF_IN_CRIT,
+      SSF_IN_LCRIT => :lcrit,
+      SSF_IN_CRIT => :crit,
       
       # Averages
-      average: SSF_IN_AVG,
+      SSF_IN_AVG => :average,
     },
     # Currents
     SF_CURR => {
       # Inputs
-      input: SSF_CURR_INPUT,
+      SSF_CURR_INPUT => :input,
       
       # Edge readings
-      lowest: SSF_CURR_LOW,
-      highest: SSF_CURR_HIGH,
+      SSF_CURR_LOW => :lowest,
+      SSF_CURR_HIGH => :highest,
       
       # Minima and maxima
-      min: SSF_CURR_MIN,
-      max: SSF_CURR_MAX,
+      SSF_CURR_MIN => :min,
+      SSF_CURR_MAX => :max,
       
       # Critical levels
-      lcrit: SSF_CURR_LCRIT,
-      crit: SSF_CURR_CRIT,
+      SSF_CURR_LCRIT => :lcrit,
+      SSF_CURR_CRIT => :crit,
       
       # Averages
-      average: SSF_CURR_AVG,
+      SSF_CURR_AVG => :average,
     },
     # Power
     SF_POWER => {
       # Inputs
-      input: SSF_POWER_INPUT,
-      input_low: SSF_POWER_INPUT_LOW,
-      input_high: SSF_POWER_INPUT_HIGH,
+      SSF_POWER_INPUT => :input,
+      SSF_POWER_INPUT_LOW => :input_low,
+      SSF_POWER_INPUT_HIGH => :input_high,
       
       # Minima and maxima
-      min: SSF_POWER_MIN,
-      max: SSF_POWER_MAX,
+      SSF_POWER_MIN => :min,
+      SSF_POWER_MAX => :max,
       
       # Critical levels
-      lcrit: SSF_POWER_LCRIT,
-      crit: SSF_POWER_CRIT,
+      SSF_POWER_LCRIT => :lcrit,
+      SSF_POWER_CRIT => :crit,
       
       # Averages
-      average: SSF_POWER_AVG,
-      average_low: SSF_POWER_AVG_LOW,
-      average_high: SSF_POWER_AVG_HIGH,
+      SSF_POWER_AVG => :average,
+      SSF_POWER_AVG_LOW => :average_low,
+      SSF_POWER_AVG_HIGH => :average_high,
       
       # Caps
-      cap: SSF_POWER_CAP,
-      cap_hyst: SSF_POWER_CAP_HYST,
+      SSF_POWER_CAP => :cap,
+      SSF_POWER_CAP_HYST => :cap_hyst,
     },
     
     # Temperatures
     SF_TEMP => {
       # Inputs
-      input: SSF_TEMP_INPUT,
+      SSF_TEMP_INPUT => :input,
       
       # Edge readings
-      lowest: SSF_TEMP_LOW,
-      highest: SSF_TEMP_HIGH,
+      SSF_TEMP_LOW => :lowest,
+      SSF_TEMP_HIGH => :highest,
       
       # Minima and maxima + hysteresis
-      min: SSF_TEMP_MIN,
-      min_hyst: SSF_TEMP_MIN_HYST,
-      max: SSF_TEMP_MAX,
-      max_hyst: SSF_TEMP_MAX_HYST,
+      SSF_TEMP_MIN => :min,
+      SSF_TEMP_MIN_HYST => :min_hyst,
+      SSF_TEMP_MAX => :max,
+      SSF_TEMP_MAX_HYST => :max_hyst,
       
       # Critical and emergency levels + hysteresis
-      lcrit: SSF_TEMP_LCRIT,
-      lcrit_hyst: SSF_TEMP_LCRIT_HYST,
-      crit: SSF_TEMP_CRIT,
-      crit_hyst: SSF_TEMP_CRIT_HYST,
-      emergency: SSF_TEMP_EMERG,
-      emergency_hyst: SSF_TEMP_EMERG_HYST,
+      SSF_TEMP_LCRIT => :lcrit,
+      SSF_TEMP_LCRIT_HYST => :lcrit_hyst,
+      SSF_TEMP_CRIT => :crit,
+      SSF_TEMP_CRIT_HYST => :crit_hyst,
+      SSF_TEMP_EMERG => :emergency,
+      SSF_TEMP_EMERG_HYST => :emergency_hyst,
     },
     # Fans
     # Fan sensors have a simple structure that is self-explanatory.
-    SF_FAN => { input: SSF_FAN_INPUT, min: SSF_FAN_MIN, max: SSF_FAN_MAX, },
+    SF_FAN => { SSF_FAN_INPUT => :input, SSF_FAN_MIN => :min, SSF_FAN_MAX => :max, },
   } # End SSF subtypes
 end # End LmSensors constants maps

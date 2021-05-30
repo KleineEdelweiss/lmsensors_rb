@@ -2,7 +2,6 @@
 
 # Make sure to include the constants
 require_relative "../lm_constants"
-require_relative "./formatters"
 
 # Append to the main module
 module LmSensors
@@ -10,6 +9,18 @@ module LmSensors
   # Feature module is used to handle the formatting
   # and inheritance of various feature types.
   module Feature
+    ##
+    # Base formatting for anything else.
+    # This pretty much just converts a general
+    # feature object into a hash, so it can be
+    # indexed in post-processing.
+    BASE_FMT = lambda do |feature|
+      # Attach the main feature name and unit type
+      fstruct = { name: feature.name, type: feature.type, unit: feature.unit }
+      # Merge the subfeatures
+      fstruct.merge(feature.subfs)
+    end # End base formatter proc
+    
     ##
     # The generic GenFeature class is appended to the LmSensors
     # to handle generic formatting on feature types that
@@ -30,7 +41,7 @@ module LmSensors
       
       ##
       # Return just the feature keys
-      def feature() { name: @name, type: @type} end
+      def feature() { name: @name, type: @type, unit: @unit } end
       
       ##
       # Set the default formatter for the subclass.
@@ -44,8 +55,8 @@ module LmSensors
       # function can be passed. The formatter should be
       # a lambda or proc type.
       def fmt(callback=@default_formatter)
+        #puts "Abstract formatter for #{self.class}"
         # If the callback is the wrong type, sue the default
-        puts "Inside formatter abs call"
         cb = Proc === callback ? callback : @default_formatter
         cb.call(self)
       end # End formatting of new struct type
