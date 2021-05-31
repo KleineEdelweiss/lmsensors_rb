@@ -26,6 +26,23 @@ module LmSensors
     # to handle generic formatting on feature types that
     # generally will not need additional post-processing.
     class GenFeature
+      ##
+      # GenFeature :default_formatter is BASE_FMT, which returns a
+      #   simple representation of the sensor subfeatures, if no
+      #   clear formatting can be determined.
+      #   
+      # GenFeature :name is the name of the feature, such as ':temp1'
+      # 
+      # GenFeature :subfs is a list/array of the subfeatures for this feature
+      # 
+      # GenFeature :type is the type of the feature, such as SF_TEMP or SF_FAN
+      # 
+      # GenFeature :unit is the default unit that is likely desired to
+      #   represent subfeatures in this feature.
+      #   
+      #   Example: :temp1 may have :temp1_input and :temp1_crit, but both
+      #     would be formatted with °C, which is returned from
+      #     LmSensors::UNITS[SF_TEMP]
       attr_reader :default_formatter, :name, :subfs, :type, :unit
       
       ##

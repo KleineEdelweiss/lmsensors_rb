@@ -38,6 +38,13 @@ VALUE lmsensors_init(VALUE self, VALUE filename) {
   } // No error -- initialized
 } // End module init
 
+/* 
+ * Document-method: pro_cleanup
+ *  
+ *  (LmSensors::SensorsBase lmsensors_cleanup)
+ *  
+ *  Cleans up the resources used by the LmSensors module
+ */
 // Cleanup sensors
 VALUE lmsensors_cleanup() {
   LMS_OPEN = Qfalse;
@@ -277,10 +284,22 @@ VALUE method_sensors_enumerate_chips(VALUE self, VALUE show_data, VALUE name) {
  */
 void Init_lmsensors_base() {
   LmSensors = rb_define_module("LmSensors"); // Module
+  
+  /* 
+   * Document-class: LmSensors::SensorsBase
+   * 
+   * This is an abstract representation of a sensor chip struct used
+   * by the lm-sensors library (https://github.com/lm-sensors/lm-sensors).
+   * 
+   * This class directly interacts with the C-side of the code and it should
+   * not be instantiated on its own. It is abstracted in LmSensors::AbsSensor
+   * and its subclasses. If you wish to used this, you should inherit from
+   * the AbsSensor class.
+   */
   Sensors = rb_define_class_under(LmSensors, "SensorsBase", rb_cData); // Main class
   
   // Define the globals
-  VALUE dec = declare_globals();
+  VALUE dec = declare_globals(LmSensors);
   rb_global_variable(&LMS_OPEN);
   
   // Module methods

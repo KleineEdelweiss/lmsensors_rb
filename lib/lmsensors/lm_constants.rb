@@ -1,5 +1,8 @@
 # lib/lmsensors/lm_constants.rb
 
+# Require the base implementation
+require_relative "../lmsensors_base/lmsensors_base"
+
 ##
 # This file simply adds in the constants mappings to
 # the LmSensors module, because there are so many,
@@ -33,9 +36,13 @@ module LmSensors
   end # End default feature mapper
   
   ##
-  # Lambda function to determine the enabled
-  # state of the sensor subfeature.
+  # CHK_BEEP uses the same formatting as the print_chip_beep_enable
+  # from the sensors program chips.c.
   CHK_BEEP = lambda { |v| v < 0.5 ? "disabled" : "enabled" }
+  
+  ##
+  # CHK_ALARM uses the same formatting as the print_chip_intrusion
+  # from the sensors program chips.c.
   CHK_ALARM = lambda { |v| v.zero? ? "OK" : "ALARM" }
   
   ##

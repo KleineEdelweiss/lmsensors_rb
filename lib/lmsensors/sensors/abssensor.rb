@@ -14,6 +14,17 @@ module LmSensors
   # a sensor-type object and provides a base interface
   # for required functions (operates like a trait).
   class AbsSensor < LmSensors::SensorsBase
+    ##
+    # AbsSensor :chip_name is the name sensors returns for the chip
+    # 
+    # AbsSensor :filters are the selected feature types to return for your use case
+    # 
+    # AbsSensor :fmap is a custom formatter map or the default DEF_FMAP
+    # 
+    # AbsSensor :fmt is a boolean of whether or not to return the data formatted
+    # 
+    # AbsSensor :subs is whether to return the subfeatures or just the feature
+    #   and its type
     attr_reader :chip_name, :filters, :fmap, :fmt, :subs
     
     ##

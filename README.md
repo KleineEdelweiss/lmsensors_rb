@@ -69,7 +69,7 @@ s.unset_name # Unset the chip selection -- ``.enum`` will go back to ALL chips
 # constants from the class.
 # 
 # Example: [1,2], for ONLY fans and temps
-# Example: [SF_FAN, SF_POWER], for ONLY fans and power
+# Example: [LmSensors::SF_FAN, LmSensors::SF_POWER], for ONLY fans and power
 sobj.set_filters :arr_of_choices
 sobj.unset_filters # Unset the filters -- returns ALL
 
@@ -99,14 +99,12 @@ fs[0].fmt # Will format the first feature returned.
 # Example: { :name => :vddgfx, :type => 0 }, for the voltage on my GPU
 #   :vddgfx is the name
 #   :type => 0, refers to the fact that this feature is measured with
-#     the voltage type (SF_IN, Voltage, 0).
+#     the voltage type (LmSensors::SF_IN, Voltage, 0).
 fs[0].feature
 ```
 
 ### TO-DO ###
-1) Clean up the code and current documentation
-1) Run some final tests
-1) Write up the rest of the documentation
+1) Clean up documentation comments
 1) Publish version 0.1.0
 
 ### INSTALLATION ###

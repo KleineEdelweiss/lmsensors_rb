@@ -14,10 +14,11 @@ require_relative "./feature"
 # lm-sensors library.
 module LmSensors
   ##
-  # Wrap the module functions
-  # 
-  # Contains: 'pro_init', 'pro_cleanup'
+  # Wraps the 'pro_init' function to initialzie the sensors
   def self.init(filename=nil) self.pro_init(filename) end
+  
+  ##
+  # Wraps the 'pro_cleanup' function to release the resources
   def self.cleanup() self.pro_cleanup end
   
   ##

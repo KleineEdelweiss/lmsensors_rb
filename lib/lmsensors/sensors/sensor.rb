@@ -13,7 +13,13 @@ module LmSensors
   # is a specific object dedicated to an
   # individual sensor chip.
   class Sensor < LmSensors::AbsSensor
+    ##
+    # Sensor :path is the '/sys/class/hwmon/' path for this specific sensor
+    # 
+    # Sensors :adapter is the adapter name, like the PCI or ISA adapter,
+    #   and its name
     attr_reader :path, :adapter
+    
     ##
     # Find a device sensors by its path, in such
     # a case where the app already has a device from

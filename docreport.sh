@@ -1,0 +1,2 @@
+# Test the documentation
+rdoc -C --exclude README.md --exclude Rakefile --exclude Makefile --exclude LICENSE.txt --exclude CHANGELOG.md --exclude Gemfile --exclude rdoc.sh --exclude docreport.sh --exclude FMAPPER.md --exclude tmp/ --exclude test/  --exclude notes/
