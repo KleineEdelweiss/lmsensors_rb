@@ -108,6 +108,8 @@ fs[0].feature
 1) Publish version 0.1.0
 
 ### INSTALLATION ###
+_DEV LIBS: As this is an extension, you will require the Ruby development headers. On some systems, this will come packaged with your Ruby installation. On others, you may need to install additional packages, such as ``ruby-dev`` (Ubuntu and similar). Check your specific system's requirements, and make sure you have the headers, as well as RubyGems and Rdoc_
+
 This wrapper requires the header files for ``lmsensors`` to be installed. For some systems, it will come with the userspace package directly. For others, it is a separate package. The header required is ``sensors.h``.
 
 NOTE: Below is how you can install it on various distros. As I use Arch and Debian, I had to look up the others, so if there is an issue, please submit the correction, and I will fix it.
