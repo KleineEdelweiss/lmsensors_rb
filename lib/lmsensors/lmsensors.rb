@@ -11,10 +11,14 @@ require_relative "./feature"
 
 ##
 # LmSensors is the wrapping module for the entire
-# lm-sensors library.
+# lm-sensors library. This module provides the ability
+# to initialize for and clean up resources from it, to
+# generate Sensor objects that can be used to monitor
+# specific pieces of hardware, as desired, and to generate
+# a SensorSpawner to enumerate what sensors are available.
 module LmSensors
   ##
-  # Wraps the 'pro_init' function to initialzie the sensors
+  # Wraps the 'pro_init' function to initialize the sensors
   def self.init(filename=nil) self.pro_init(filename) end
   
   ##

@@ -7,7 +7,7 @@ Gem::Specification.new do |spec|
   spec.version = LmSensors::VERSION
   spec.summary = "Lmsensors wrapper in the C-Ruby API"
   spec.description = <<~DESC
-    Wrapper for the ``lmsensors`` library, which provides the programs, 
+    Wrapper for the ``lm-sensors`` library, which provides the programs, 
     ``sensors`` and ``sensors-detect``, for Linux systems. This library 
     and its programs are used to allow the user to access temperature and
     fan data for various hardware devices.

@@ -291,7 +291,7 @@ void Init_lmsensors_base() {
    * This is an abstract representation of a sensor chip struct used
    * by the lm-sensors library (https://github.com/lm-sensors/lm-sensors).
    * 
-   * This class directly interacts with the C-side of the code and it should
+   * This class directly interacts with the C-side of the code, and it should
    * not be instantiated on its own. It is abstracted in LmSensors::AbsSensor
    * and its subclasses. If you wish to used this, you should inherit from
    * the AbsSensor class.

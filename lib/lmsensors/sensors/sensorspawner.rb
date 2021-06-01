@@ -3,9 +3,8 @@
 # Require the abstract sensor
 require_relative "./sensor"
 
-##
-# This module will house the concrete implementation
-# of the actual Sensor object types.
+# :nodoc: This module will house the concrete implementation
+# :nodoc: of the actual Sensor object types.
 module LmSensors
   ##
   # SensorSpawner is a Sensor, unto itself,
@@ -34,15 +33,21 @@ module LmSensors
     # Enumerate the available chips for the specified
     # name that was set (or all chips, if no name).
     # 
-    # This will return a hash of either ALL
+    # This will return an array of either ALL
     # the available chips or the selected
     # chip set by 'set_name'.
-    def enum(name=@chip_name) 
-      pro_enum(nil, name).collect do |index, chip|
-        item = LmSensors::Sensor.new
-        item.locate index
-        item.set_fmap(@fmap)
-        item
+    def enum(name=@chip_name)
+      chips = pro_enum(nil, name)
+      if Hash === chips then
+        chips.collect do |index, chip|
+          item = LmSensors::Sensor.new
+          item.locate index
+          item.set_fmap(@fmap)
+          item
+        end
+      else
+        STDERR.puts chips
+        nil
       end
     end # End sensor chip enumerator
     
@@ -50,9 +55,17 @@ module LmSensors
     # Select a specific chip by its path.
     def locate(path, set=false)
       dir = path_valid?(path)
+      # Return early, if the path is invalid
+      if !dir then return dir end
+      
+      # Otherwise, continue
       items = []
       if dir then
-        items = enum.select { |s| s.path == dir }
+        data = enum
+        if Array === data then
+          # Only proceed if the data is good
+          items = data.select { |s| s.path == dir }
+        else return nil end
       end.flatten
       if items.length == 1 then
         item = items[0]

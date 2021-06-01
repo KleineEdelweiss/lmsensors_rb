@@ -25,6 +25,12 @@ s = LmSensors::SensorSpawner.new
 # Sensor object, but will return the number of features.
 s.count # or s.count_s
 
+# Locate a specific Sensor on a SensorSpawner. This is
+# a shorthand way to assign a specific sensor, quickly, if you
+# already know the path, such as what might have been returned
+# from another gem or script.
+s.locate :path # Where path is something like '/sys/class/hwmon/hwmon3'
+
 # Assign a list of all the selected sensors available
 # ``.enum`` will return a list of LmSensors::AbsSensor objects
 # or their subclasses.
@@ -43,10 +49,17 @@ s.set_fmap :your_proc
 s.reset_fmap # Reset it back to the default
 
 # Where :idx is an int in range, assign new
-# AbsSensor object to sobj.
-sobj = items[:idx] 
-sobj.stat # Stat the selected sensor, getting raw output
-sobj.features # Return the features on a sensor
+# Sensor object to sobj.
+sobj = items[:idx]
+sobj.name # Name of Sensor
+sobj.adapater # Adapter of Sensor
+sobj.path # Path of Sensor
+sobj.info # Return the name, adapter, and path of a Sensor
+sobj.read # Raw data from the :stat part of the Sensor
+sobj.stat # Stat the selected sensor, returning features
+sobj.features # Alias for :stat
+sobj.count # Count the number of features
+sobj.count_s # Alias for :count
 sobj.count_sf # Return the number of subfeatures on a Sensor object
 
 # Set the name of the desired sensors to collect
@@ -85,7 +98,7 @@ sobj.toggle_fmt
 
 # Assign the features from a Sensor.
 # This will return an array of Feature objects.
-fs = sobj.features
+fs = sobj.features # This is an alias for :stat
 
 # Format the feature data. Some types will have a pre-defined
 # format, but for others, you can derive LmSensors::Feature::GenFeature.
@@ -104,8 +117,7 @@ fs[0].feature
 ```
 
 ### TO-DO ###
-1) Clean up documentation comments
-1) Publish version 0.1.0
+~~1) DONE, FINALLY!~~
 
 ### INSTALLATION ###
 _DEV LIBS: As this is an extension, you will require the Ruby development headers. On some systems, this will come packaged with your Ruby installation. On others, you may need to install additional packages, such as ``ruby-dev`` (Ubuntu and similar). Check your specific system's requirements, and make sure you have the headers, as well as RubyGems and Rdoc_

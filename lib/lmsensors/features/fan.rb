@@ -4,9 +4,9 @@
 require_relative "../lm_constants"
 require_relative "./abs_feature"
 
-# Append to the main module
+# :nodoc: Append to the main module
 module LmSensors
-  # Append to the Feature module
+  # :nodoc: Append to the Feature module
   module Feature
     ##
     # Default formatting proc for

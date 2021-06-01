@@ -5,9 +5,8 @@ require_relative "../../lmsensors_base/lmsensors_base"
 require_relative "../lm_constants"
 require_relative "../feature"
 
-##
-# This module will house the abstract implementation
-# of a general sensor-type object.
+# :nodoc: This module will house the abstract implementation
+# :nodoc: of a general sensor-type object.
 module LmSensors
   ##
   # AbsSensor is an abstract representation of
@@ -16,16 +15,20 @@ module LmSensors
   class AbsSensor < LmSensors::SensorsBase
     ##
     # AbsSensor :chip_name is the name sensors returns for the chip
-    # 
+    attr_reader :chip_name
+    ##
     # AbsSensor :filters are the selected feature types to return for your use case
-    # 
+    attr_reader :filters
+    ##
     # AbsSensor :fmap is a custom formatter map or the default DEF_FMAP
-    # 
+    attr_reader :fmap
+    ##
     # AbsSensor :fmt is a boolean of whether or not to return the data formatted
-    # 
+    attr_reader :fmt
+    ##
     # AbsSensor :subs is whether to return the subfeatures or just the feature
-    #   and its type
-    attr_reader :chip_name, :filters, :fmap, :fmt, :subs
+    # and its type
+    attr_reader :subs
     
     ##
     # Constructor
@@ -111,7 +114,14 @@ module LmSensors
     # Get the number of sensors available
     # for the current name (or the total number
     # of sensors available).
-    def count() enum.count end # End count of sensors
+    def count
+      data = enum
+      if ([Hash, Array].include?(data.class)) then
+        # If the data is good
+        data.count
+      else return nil end
+      
+    end # End count of sensors
     alias :count_s :count # Add alias for backwards compatibility
     
     # Protected methods
@@ -121,7 +131,7 @@ module LmSensors
     # Validate a path -- protected
     def path_valid?(path)
       # Check that the path argument is a string
-      if (!String === path) then
+      if (!path.is_a?(String)) then
         STDERR.puts "::Sensor ERROR:: Path must be string!"
         return nil
       end # End check for correct path

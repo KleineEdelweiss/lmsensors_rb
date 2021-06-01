@@ -3,10 +3,7 @@
 # Require the base implementation
 require_relative "../lmsensors_base/lmsensors_base"
 
-##
-# This file simply adds in the constants mappings to
-# the LmSensors module, because there are so many,
-# and it is inconvenient to keep them all in one.
+# :nodoc: Constants for the LmSensors module
 module LmSensors
   ##
   # The default feature map method maps the feature 
@@ -65,11 +62,15 @@ module LmSensors
     SF_ENERGY => "J", # Energy, Joules
     SF_CURR => "A", # Current, Amps
     SF_HUMIDITY => "% RH", # Humidity, percent
+    SF_MAX_MAIN => "",
     # Skips here
     SF_VID => "V", # Vid -- this is in Volts
     SF_INTRUSION => CHK_ALARM, # Intrusion
+    SF_MAX_OTHER => "",
     # Skips here, again
     SF_BEEP_ENABLE => CHK_BEEP, # Beep enabled, true if gte 0.5
+    SF_MAX => "",
+    SF_UNKNOWN => "",
   } # End default units enum
   
   ##

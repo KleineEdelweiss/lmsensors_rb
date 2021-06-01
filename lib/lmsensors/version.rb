@@ -1,10 +1,8 @@
 # lib/lmsensors/version.rb
 
-##
-# Just documenting the version, so
-# ``rdoc`` doesn't complain...
+# :nodoc: Append the version data to the module
 module LmSensors
   ##
   # The current version
   VERSION = "0.1.0"
-end
+end # End appending of version data

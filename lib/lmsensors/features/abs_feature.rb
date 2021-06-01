@@ -3,7 +3,7 @@
 # Make sure to include the constants
 require_relative "../lm_constants"
 
-# Append to the main module
+# :nodoc: Append to the main module
 module LmSensors
   ##
   # Feature module is used to handle the formatting
@@ -28,22 +28,25 @@ module LmSensors
     class GenFeature
       ##
       # GenFeature :default_formatter is BASE_FMT, which returns a
-      #   simple representation of the sensor subfeatures, if no
-      #   clear formatting can be determined.
-      #   
+      # simple representation of the sensor subfeatures, if no
+      # clear formatting can be determined.
+      attr_reader :default_formatter
+      ##
       # GenFeature :name is the name of the feature, such as ':temp1'
-      # 
+      attr_reader :name
+      ##
       # GenFeature :subfs is a list/array of the subfeatures for this feature
-      # 
+      attr_reader :subfs
+      ##
       # GenFeature :type is the type of the feature, such as SF_TEMP or SF_FAN
-      # 
+      attr_reader :type
+      ##
       # GenFeature :unit is the default unit that is likely desired to
-      #   represent subfeatures in this feature.
-      #   
+      # represent subfeatures in this feature.
       #   Example: :temp1 may have :temp1_input and :temp1_crit, but both
       #     would be formatted with °C, which is returned from
       #     LmSensors::UNITS[SF_TEMP]
-      attr_reader :default_formatter, :name, :subfs, :type, :unit
+      attr_reader :unit
       
       ##
       # Constructor
