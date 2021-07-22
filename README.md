@@ -52,7 +52,7 @@ s.reset_fmap # Reset it back to the default
 # Sensor object to sobj.
 sobj = items[:idx]
 sobj.name # Name of Sensor
-sobj.adapater # Adapter of Sensor
+sobj.adapter # Adapter of Sensor
 sobj.path # Path of Sensor
 sobj.info # Return the name, adapter, and path of a Sensor
 sobj.read # Raw data from the :stat part of the Sensor

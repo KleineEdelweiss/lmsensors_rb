@@ -1,2 +1,5 @@
 ### CHANGELOG -- (Ruby LmSensors) ###
 1) 0.1.0, unreleased: 2021-May-26 -- Several major changes to the API access functionality. Massive levels of abstraction, per use cases noted from the Ruby programming server. [t. Edelweiss]
+1) 0.1.1, [CRITICAL PATCH] immediate pre-release: 2021-Jul-22 -- **CRITICAL PATCH (but does not change interface) -- please read** ``changes/0.1.1-critical.md`` **for information.** [t. Edelweiss]
+1) 0.1.1, immediate pre-release: 2021-Jul-22 -- The default formatting has been fixed, because some sensors do not report the values requested. As such, they will not output a formatted value, if one does not exist -- this came to me on testing with my NAS, where the iGPU on my Ryzen APU does not report voltage, but as "N/A", so it shows as ``nil`` to Ruby. [t. Edelweiss]
+1) 0.1.1, immediate pre-release: 2021-Jul-22 -- Fixed the README, as there was a typo. Also added the necessary above-mentioned critical change file. [t. Edelweiss]

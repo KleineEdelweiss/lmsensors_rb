@@ -19,23 +19,25 @@ module LmSensors
       # Format the outputs
       # Strip each, in case the unit is empty
       feature.subfs.values.map do |v|
-        case v[:subtype]
-        when SSF_POWER_INPUT
-          out[:input] = "#{v[:value].round(2)} #{unit}".strip
-        when SSF_POWER_AVG
-          tmp[:average] = v[:value]
-          out[:average] = "#{v[:value].round(2)} #{unit}".strip
-        when SSF_POWER_MAX
-          tmp[:max] = v[:value]
-          out[:max] = "#{v[:value].round(2)} #{unit}".strip
-        when SSF_POWER_CRIT
-          tmp[:crit] = v[:value]
-          out[:crit] = "#{v[:value].round(2)} #{unit}".strip
-        when SSF_POWER_CAP
-          tmp[:cap] = v[:value]
-          out[:cap] = "#{v[:value].round(2)} #{unit}".strip
-        when SSF_POWER_MIN
-          out[:min] = "#{v[:value].round(2)} #{unit}".strip
+        if v[:value] then
+          case v[:subtype]
+          when SSF_POWER_INPUT
+            out[:input] = "#{v[:value].round(2)} #{unit}".strip
+          when SSF_POWER_AVG
+            tmp[:average] = v[:value]
+            out[:average] = "#{v[:value].round(2)} #{unit}".strip
+          when SSF_POWER_MAX
+            tmp[:max] = v[:value]
+            out[:max] = "#{v[:value].round(2)} #{unit}".strip
+          when SSF_POWER_CRIT
+            tmp[:crit] = v[:value]
+            out[:crit] = "#{v[:value].round(2)} #{unit}".strip
+          when SSF_POWER_CAP
+            tmp[:cap] = v[:value]
+            out[:cap] = "#{v[:value].round(2)} #{unit}".strip
+          when SSF_POWER_MIN
+            out[:min] = "#{v[:value].round(2)} #{unit}".strip
+          end
         end
       end # End value mapper for fan
       

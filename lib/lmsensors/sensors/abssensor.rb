@@ -1,7 +1,7 @@
 # lib/lmsensors/sensors/abssensors.rb
 
 # Requires
-require_relative "../../lmsensors_base/lmsensors_base"
+require "lmsensors_base.so"
 require_relative "../lm_constants"
 require_relative "../feature"
 

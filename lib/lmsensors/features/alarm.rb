@@ -22,7 +22,7 @@ module LmSensors
         # Only check is alarm is enabled.
         # The other option SSF_INTRUDE_BEEP
         # is not formatted in the normal sensor program
-        if v[:subtype] == SSF_INTRUDE_ALARM then
+        if v[:value] and (v[:subtype] == SSF_INTRUDE_ALARM) then
           out[k] = unit.call(v[:value]) end
       end # End value mapper for alarm
       out

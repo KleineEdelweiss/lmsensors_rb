@@ -18,7 +18,7 @@ module LmSensors
       
       # Format the outputs
       feature.subfs.map do |k, v|
-        out[k] = unit.call(v[:value])
+        if v[:value] then out[k] = unit.call(v[:value]) end
       end # End value mapper for beep
       out
     end # End default beep formatter

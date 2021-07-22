@@ -19,22 +19,24 @@ module LmSensors
       # Format the outputs
       # Strip each, in case the unit is empty
       feature.subfs.values.map do |v|
-        case v[:subtype]
-        when SSF_IN_INPUT
-          tmp[:input] = v[:value]
-          out[:input] = "#{v[:value].round(2)} #{unit}".strip
-        when SSF_IN_MAX
-          if v[:value] != 0 then
-            tmp[:max] = v[:value]
-            out[:max] = "#{v[:value].round(2)} #{unit}".strip
+        if v[:value] then 
+          case v[:subtype]
+          when SSF_IN_INPUT
+            tmp[:input] = v[:value]
+            out[:input] = "#{v[:value].round(2)} #{unit}".strip
+          when SSF_IN_MAX
+            if v[:value] != 0 then
+              tmp[:max] = v[:value]
+              out[:max] = "#{v[:value].round(2)} #{unit}".strip
+            end
+          when SSF_IN_CRIT
+            if v[:value] != 0 then
+              tmp[:crit] = v[:value]
+              out[:crit] = "#{v[:value].round(2)} #{unit}".strip
+            end
+          when SSF_IN_MIN
+            if v[:value] != 0 then out[:min] = "#{v[:value].round(2)} #{unit}".strip end
           end
-        when SSF_IN_CRIT
-          if v[:value] != 0 then
-            tmp[:crit] = v[:value]
-            out[:crit] = "#{v[:value].round(2)} #{unit}".strip
-          end
-        when SSF_IN_MIN
-          if v[:value] != 0 then out[:min] = "#{v[:value].round(2)} #{unit}".strip end
         end
       end # End value mapper for fan
       

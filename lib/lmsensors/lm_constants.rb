@@ -1,7 +1,7 @@
 # lib/lmsensors/lm_constants.rb
 
 # Require the base implementation
-require_relative "../lmsensors_base/lmsensors_base"
+require "lmsensors_base.so"
 
 # :nodoc: Constants for the LmSensors module
 module LmSensors

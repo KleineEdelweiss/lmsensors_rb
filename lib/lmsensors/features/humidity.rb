@@ -20,7 +20,7 @@ module LmSensors
       
       # Format the outputs
       feature.subfs.map do |k, v|
-        out[k] = "#{v[:value].round(2)}#{unit}"
+        if v[:value] then out[k] = "#{v[:value].round(2)}#{unit}" end
       end # End value mapper for humidity
       out
     end # End humidity proc
