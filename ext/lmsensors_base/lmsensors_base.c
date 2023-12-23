@@ -296,7 +296,7 @@ void Init_lmsensors_base() {
    * and its subclasses. If you wish to used this, you should inherit from
    * the AbsSensor class.
    */
-  Sensors = rb_define_class_under(LmSensors, "SensorsBase", rb_cData); // Main class
+  Sensors = rb_define_class_under(LmSensors, "SensorsBase", rb_cObject); // Main class
   
   // Define the globals
   VALUE dec = declare_globals(LmSensors);
